@@ -19,6 +19,19 @@ class Board:
             'a8': (0, 0), 'b8': (0, 1), 'c8': (0, 2), 'd8': (0, 3),
             'e8': (0, 4), 'f8': (0, 5), 'g8': (0, 6), 'h8': (0, 7),
         }
+        self.code_lookup = {}
+        for code, coord in self.tile_lookup.items():
+            self.code_lookup[coord] = code
+
+        self.movement_call_lookup = {
+            'p': self.pawn_moves,
+            'k': self.knight_moves,
+            'r': self.rook_moves,
+            'b': self.bishop_moves,
+            'q': self.queen_moves,
+            'z': self.king_moves,
+        }
+
         self.board = []
 
     def init_board(self):
@@ -46,6 +59,10 @@ class Board:
         if character == character.lower():
             if self.board[row+1][col] == ' ':
                 possible_moves.add((row+1, col))
+            if row == 1:
+                if self.board[row+2][col] == ' ':
+                    possible_moves.add((row+2, col))
+
             if col >= 1 and col <= 6:
                 if self.board[row+1][col+1] != ' ':
                     if self.board[row+1][col+1] == self.board[row+1][col+1].upper():
@@ -53,39 +70,43 @@ class Board:
                 if self.board[row+1][col-1] != ' ':
                     if self.board[row+1][col-1] == self.board[row+1][col-1].upper():
                         possible_moves.add((row+1, col-1))
-                return list(possible_moves)
-            if col == 0:
+
+            elif col == 0:
                 if self.board[row+1][col+1] != ' ':
                     if self.board[row+1][col+1] == self.board[row+1][col+1].upper():
                         possible_moves.add((row+1, col+1))
-                return list(possible_moves)
-            if col == 7:
+
+            elif col == 7:
                 if self.board[row+1][col-1] != ' ':
                     if self.board[row+1][col-1] == self.board[row+1][col-1].upper():
                         possible_moves.add((row+1, col-1))
-                return list(possible_moves)
+
         else:
             if self.board[row-1][col] == ' ':
                 possible_moves.add((row-1, col))
+            if row == 6:
+                if self.board[row-2][col] == ' ':
+                    possible_moves.add((row-2, col))
+
             if col >= 1 and col <= 6:
                 if self.board[row-1][col+1] != ' ':
                     if self.board[row-1][col+1] == self.board[row-1][col+1].lower():
                         possible_moves.add((row-1, col+1))
-                if self.board[row-1][col-1] != ' ':
-                    if self.board[row-1][col-1] == self.board[row-1][col-1].lower():
-                        possible_moves.add((row-1, col-1))
-                return list(possible_moves)
-            if col == 0:
-                if self.board[row-1][col+1] != ' ':
-                    if self.board[row-1][col+1] == self.board[row-1][col+1].lower():
-                        possible_moves.add((row-1, col+1))
-                return list(possible_moves)
-            if col == 7:
                 if self.board[row-1][col-1] != ' ':
                     if self.board[row-1][col-1] == self.board[row-1][col-1].lower():
                         possible_moves.add((row-1, col-1))
 
-                return list(possible_moves)
+            elif col == 0:
+                if self.board[row-1][col+1] != ' ':
+                    if self.board[row-1][col+1] == self.board[row-1][col+1].lower():
+                        possible_moves.add((row-1, col+1))
+
+            elif col == 7:
+                if self.board[row-1][col-1] != ' ':
+                    if self.board[row-1][col-1] == self.board[row-1][col-1].lower():
+                        possible_moves.add((row-1, col-1))
+
+        return list(possible_moves)
 
     def knight_moves(self, tile):
         row = tile[0]
@@ -478,8 +499,46 @@ class Board:
 
         return list(possible_moves)
 
-    def legal_moves(self):
-        pass
+    def legal_moves(self, turn):
+
+        possible_moves = []
+        
+        if turn == 1:
+            for row in range(8):
+                for col in range(8):
+                    piece = self.board[row][col]
+                    if piece != ' ' and piece == piece.upper():
+                        func = self.movement_call_lookup[piece.lower()]
+                        piece_moves = func((row, col))
+                        print(f'possible moves for {row, col}: {piece_moves}')
+                        for move in piece_moves:
+                            possible_moves += self.get_move_code((row, col), move, piece)
+        else:
+            for row in range(8):
+                for col in range(8):
+                    piece = self.board[row][col]
+                    if piece != ' ' and piece == piece.lower():
+                        func = self.movement_call_lookup[piece.lower()]
+                        piece_moves = func((row, col))
+                        for move in piece_moves:
+                            possible_moves += self.get_move_code((row, col), move, piece)
+
+        return possible_moves
+
+    def get_move_code(self, start, end, piece) -> list:
+        codes = []
+        left = self.code_lookup[start]
+        right = self.code_lookup[end]
+        prefix = left + right
+        if piece == 'p' and start[0] == 6 and end[0] == 7:
+            for p in ['q', 'r', 'b', 'k']:
+                codes.append(prefix + p)
+        elif piece == 'P' and start[0] == 1 and end[0] == 0:
+            for p in ['q', 'r', 'b', 'k']:
+                codes.append(prefix + p)
+        else:
+            codes.append(prefix)
+        return codes
 
     def get_king_id(self):
         for row in range(8):
@@ -681,16 +740,7 @@ class Board:
 
 if __name__ == '__main__':
     board = Board()
-    board.board = [
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', 'P', ' ', ' ', ' '],
-        [' ', ' ', ' ', 'b', ' ', 'k', ' ', ' '],
-        [' ', ' ', ' ', 'K', 'Q', 'z', ' ', ' '],
-        [' ', ' ', ' ', 'Q', 'r', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    ]
-    result = board.king_moves((4, 5))
+    board.init_board()
+    result = board.legal_moves(-1)
     print(result)
     print(len(result))
