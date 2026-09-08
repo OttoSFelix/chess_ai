@@ -1,3 +1,5 @@
+import chess
+import random
 
 class Board:
     def __init__(self):
@@ -46,6 +48,30 @@ class Board:
             ['R', 'K', 'B', 'Q', 'Z', 'B', 'K', 'R'],
         ]
 
+    def play_move(self, code):
+        origin = self.tile_lookup[code[0:2]]
+        target = self.tile_lookup[code[2:4]]
+        
+        piece = self.board[origin[0]][origin[1]]
+        self.board[origin[0]][origin[1]] = ' '
+        self.board[target[0]][target[1]] = piece
+
+        if piece.lower() == 'z':
+            if target[1] - origin[1] == 2:
+                self.board[target[0]][target[1]-1] = self.board[target[0]][target[1]+1]
+                self.board[target[0]][target[1]+1] = ' '
+            elif target[1] - origin[1] == -2:
+                self.board[target[0]][target[1]+1] = self.board[target[0]][target[1]-2]
+                self.board[target[0]][target[1]-2] = ' '
+                
+
+        elif len(code) == 5:
+            new_piece = code[4]
+            if piece == piece.lower():
+                self.board[target[0]][target[1]] = new_piece.lower()
+            else:
+                self.board[target[0]][target[1]] = new_piece.upper()         
+
     def pawn_moves(self, tile):
         row = tile[0]
         col = tile[1]
@@ -60,7 +86,7 @@ class Board:
             if self.board[row+1][col] == ' ':
                 possible_moves.add((row+1, col))
             if row == 1:
-                if self.board[row+2][col] == ' ':
+                if self.board[row+1][col] == ' ' and self.board[row+2][col] == ' ':
                     possible_moves.add((row+2, col))
 
             if col >= 1 and col <= 6:
@@ -85,7 +111,7 @@ class Board:
             if self.board[row-1][col] == ' ':
                 possible_moves.add((row-1, col))
             if row == 6:
-                if self.board[row-2][col] == ' ':
+                if self.board[row-1][col] == ' ' and self.board[row-2][col] == ' ':
                     possible_moves.add((row-2, col))
 
             if col >= 1 and col <= 6:
@@ -510,7 +536,6 @@ class Board:
                     if piece != ' ' and piece == piece.upper():
                         func = self.movement_call_lookup[piece.lower()]
                         piece_moves = func((row, col))
-                        print(f'possible moves for {row, col}: {piece_moves}')
                         for move in piece_moves:
                             possible_moves += self.get_move_code((row, col), move, piece)
         else:
@@ -739,8 +764,18 @@ class Board:
 
 
 if __name__ == '__main__':
+    cboard = chess.Board()
     board = Board()
     board.init_board()
-    result = board.legal_moves(-1)
-    print(result)
-    print(len(result))
+    for row in board.board:
+        print(row)
+    print("\n")
+    for x in range(10):
+        moves = [m.uci() for m in cboard.legal_moves]
+        move = random.choice(moves)
+        board.play_move(move)
+        cboard.push_uci(move)
+        for row in board.board:
+            print(row)
+        print("\n")
+        
