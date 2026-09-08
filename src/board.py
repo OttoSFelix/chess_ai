@@ -33,6 +33,451 @@ class Board:
             ['R', 'K', 'B', 'Q', 'Z', 'B', 'K', 'R'],
         ]
 
+    def pawn_moves(self, tile):
+        row = tile[0]
+        col = tile[1]
+
+        character: str = self.board[row][col]
+        possible_moves = set()
+
+        if character.lower() != 'p':
+            return Exception (f'Error: pawn not in {tile}')
+
+        if character == character.lower():
+            if self.board[row+1][col] == ' ':
+                possible_moves.add((row+1, col))
+            if col >= 1 and col <= 6:
+                if self.board[row+1][col+1] != ' ':
+                    if self.board[row+1][col+1] == self.board[row+1][col+1].upper():
+                        possible_moves.add((row+1, col+1))
+                if self.board[row+1][col-1] != ' ':
+                    if self.board[row+1][col-1] == self.board[row+1][col-1].upper():
+                        possible_moves.add((row+1, col-1))
+                return list(possible_moves)
+            if col == 0:
+                if self.board[row+1][col+1] != ' ':
+                    if self.board[row+1][col+1] == self.board[row+1][col+1].upper():
+                        possible_moves.add((row+1, col+1))
+                return list(possible_moves)
+            if col == 7:
+                if self.board[row+1][col-1] != ' ':
+                    if self.board[row+1][col-1] == self.board[row+1][col-1].upper():
+                        possible_moves.add((row+1, col-1))
+                return list(possible_moves)
+        else:
+            if self.board[row-1][col] == ' ':
+                possible_moves.add((row-1, col))
+            if col >= 1 and col <= 6:
+                if self.board[row-1][col+1] != ' ':
+                    if self.board[row-1][col+1] == self.board[row-1][col+1].lower():
+                        possible_moves.add((row-1, col+1))
+                if self.board[row-1][col-1] != ' ':
+                    if self.board[row-1][col-1] == self.board[row-1][col-1].lower():
+                        possible_moves.add((row-1, col-1))
+                return list(possible_moves)
+            if col == 0:
+                if self.board[row-1][col+1] != ' ':
+                    if self.board[row-1][col+1] == self.board[row-1][col+1].lower():
+                        possible_moves.add((row-1, col+1))
+                return list(possible_moves)
+            if col == 7:
+                if self.board[row-1][col-1] != ' ':
+                    if self.board[row-1][col-1] == self.board[row-1][col-1].lower():
+                        possible_moves.add((row-1, col-1))
+
+                return list(possible_moves)
+
+    def knight_moves(self, tile):
+        row = tile[0]
+        col = tile[1]
+
+        character = self.board[row][col]
+        possible_moves_copy = [(row+2, col+1), (row+1, col+2), (row-1, col+2), (row-2, col+1), (row-2, col-1), (row-1, col-2), (row+1, col-2), (row+2, col-1)]
+        possible_moves = set(possible_moves_copy)
+
+        if character.lower() != 'k':
+            return Exception (f'Error: knight not in {tile}')
+
+        if character == character.lower():
+            for row, col in possible_moves_copy:
+                if row > 7 or row < 0 or col > 7 or col < 0:
+                    possible_moves.remove((row, col))
+                    continue
+                if self.board[row][col] != ' ':
+                    if self.board[row][col] == self.board[row][col].lower():
+                        possible_moves.remove((row, col))
+        else:
+            for row, col in possible_moves_copy:
+                if row > 7 or row < 0 or col > 7 or col < 0:
+                    possible_moves.remove((row, col))
+                    continue
+                if self.board[row][col] != ' ':
+                    if self.board[row][col] == self.board[row][col].upper():
+                        possible_moves.remove((row, col))
+
+        return list(possible_moves)
+
+    def rook_moves(self, tile, queen: bool = False):
+        row = tile[0]
+        col = tile[1]
+
+        possible_moves = set()
+        character = self.board[row][col]
+        
+        if not queen:
+            if character.lower() != 'r':
+                return Exception (f'Error: rook not in {tile}')
+
+        temp_row = row
+        temp_col = col
+
+        if character == character.lower():
+            while True:
+                temp_row += 1
+                if temp_row > 7:
+                    temp_row = row
+                    break
+                if self.board[temp_row][col] == ' ':
+                    possible_moves.add((temp_row, col))
+                    continue
+                if self.board[temp_row][col] == self.board[temp_row][col].upper():
+                    possible_moves.add((temp_row, col))
+                    temp_row = row
+                    break
+                else:
+                    temp_row = row
+                    break
+            
+            while True:
+                temp_row -= 1
+                if temp_row < 0:
+                    temp_row = row
+                    break
+                if self.board[temp_row][col] == ' ':
+                    possible_moves.add((temp_row, col))
+                    continue
+                if self.board[temp_row][col] == self.board[temp_row][col].upper():
+                    possible_moves.add((temp_row, col))
+                    temp_row = row
+                    break
+                else:
+                    temp_row = row
+                    break
+
+            while True:
+                temp_col += 1
+                if temp_col > 7:
+                    temp_col = col
+                    break
+                if self.board[row][temp_col] == ' ':
+                    possible_moves.add((row, temp_col))
+                    continue
+                if self.board[row][temp_col] == self.board[row][temp_col].upper():
+                    possible_moves.add((row, temp_col))
+                    temp_col = col
+                    break
+                else:
+                    temp_col = col
+                    break
+
+            while True:
+                temp_col -= 1
+                if temp_col < 0:
+                    temp_col = col
+                    break
+                if self.board[row][temp_col] == ' ':
+                    possible_moves.add((row, temp_col))
+                    continue
+                if self.board[row][temp_col] == self.board[row][temp_col].upper():
+                    possible_moves.add((row, temp_col))
+                    temp_col = col
+                    break
+                else:
+                    temp_col = col
+                    break  
+
+        else:
+            while True:
+                temp_row += 1
+                if temp_row > 7:
+                    temp_row = row
+                    break
+                if self.board[temp_row][col] == ' ':
+                    possible_moves.add((temp_row, col))
+                    continue
+                if self.board[temp_row][col] == self.board[temp_row][col].lower():
+                    possible_moves.add((temp_row, col))
+                    temp_row = row
+                    break
+                else:
+                    temp_row = row
+                    break
+            
+            while True:
+                temp_row -= 1
+                if temp_row < 0:
+                    temp_row = row
+                    break
+                if self.board[temp_row][col] == ' ':
+                    possible_moves.add((temp_row, col))
+                    continue
+                if self.board[temp_row][col] == self.board[temp_row][col].lower():
+                    possible_moves.add((temp_row, col))
+                    temp_row = row
+                    break
+                else:
+                    temp_row = row
+                    break
+
+            while True:
+                temp_col += 1
+                if temp_col > 7:
+                    temp_col = col
+                    break
+                if self.board[row][temp_col] == ' ':
+                    possible_moves.add((row, temp_col))
+                    continue
+                if self.board[row][temp_col] == self.board[row][temp_col].lower():
+                    possible_moves.add((row, temp_col))
+                    temp_col = col
+                    break
+                else:
+                    temp_col = col
+                    break
+
+            while True:
+                temp_col -= 1
+                if temp_col < 0:
+                    temp_col = col
+                    break
+                if self.board[row][temp_col] == ' ':
+                    possible_moves.add((row, temp_col))
+                    continue
+                if self.board[row][temp_col] == self.board[row][temp_col].lower():
+                    possible_moves.add((row, temp_col))
+                    temp_col = col
+                    break
+                else:
+                    temp_col = col
+                    break  
+
+        return list(possible_moves)
+
+    def bishop_moves(self, tile, queen: bool = False):
+        row = tile[0]
+        col = tile[1]
+
+        possible_moves = set()
+        character = self.board[row][col]
+        
+        if not queen:
+            if character.lower() != 'b':
+                return Exception (f'Error: bishop not in {tile}')
+
+        temp_row = row
+        temp_col = col
+        
+        if character == character.lower():
+            while True:
+                temp_row += 1
+                temp_col += 1
+                if temp_row > 7 or temp_col > 7:
+                    temp_row = row
+                    temp_col = col
+                    break
+                if self.board[temp_row][temp_col] == ' ':
+                    possible_moves.add((temp_row, temp_col))
+                    continue
+                if self.board[temp_row][temp_col] == self.board[temp_row][temp_col].upper():
+                    possible_moves.add((temp_row, temp_col))
+                    temp_row = row
+                    temp_col = col
+                    break
+                else:
+                    temp_row = row
+                    temp_col = col
+                    break
+
+            while True:
+                temp_row -= 1
+                temp_col += 1
+                if temp_row < 0 or temp_col > 7:
+                    temp_row = row
+                    temp_col = col
+                    break
+                if self.board[temp_row][temp_col] == ' ':
+                    possible_moves.add((temp_row, temp_col))
+                    continue
+                if self.board[temp_row][temp_col] == self.board[temp_row][temp_col].upper():
+                    possible_moves.add((temp_row, temp_col))
+                    temp_row = row
+                    temp_col = col
+                    break
+                else:
+                    temp_row = row
+                    temp_col = col
+                    break
+            
+            while True:
+                temp_row += 1
+                temp_col -= 1
+                if temp_row > 7 or temp_col < 0:
+                    temp_row = row
+                    temp_col = col
+                    break
+                if self.board[temp_row][temp_col] == ' ':
+                    possible_moves.add((temp_row, temp_col))
+                    continue
+                if self.board[temp_row][temp_col] == self.board[temp_row][temp_col].upper():
+                    possible_moves.add((temp_row, temp_col))
+                    temp_row = row
+                    temp_col = col
+                    break
+                else:
+                    temp_row = row
+                    temp_col = col
+                    break
+
+            while True:
+                temp_row -= 1
+                temp_col -= 1
+                if temp_row < 0 or temp_col < 0:
+                    temp_row = row
+                    temp_col = col
+                    break
+                if self.board[temp_row][temp_col] == ' ':
+                    possible_moves.add((temp_row, temp_col))
+                    continue
+                if self.board[temp_row][temp_col] == self.board[temp_row][temp_col].upper():
+                    possible_moves.add((temp_row, temp_col))
+                    temp_row = row
+                    temp_col = col
+                    break
+                else:
+                    temp_row = row
+                    temp_col = col
+                    break
+
+        else:
+            while True:
+                temp_row += 1
+                temp_col += 1
+                if temp_row > 7 or temp_col > 7:
+                    temp_row = row
+                    temp_col = col
+                    break
+                if self.board[temp_row][temp_col] == ' ':
+                    possible_moves.add((temp_row, temp_col))
+                    continue
+                if self.board[temp_row][temp_col] == self.board[temp_row][temp_col].lower():
+                    possible_moves.add((temp_row, temp_col))
+                    temp_row = row
+                    temp_col = col
+                    break
+                else:
+                    temp_row = row
+                    temp_col = col
+                    break
+
+            while True:
+                temp_row -= 1
+                temp_col += 1
+                if temp_row < 0 or temp_col > 7:
+                    temp_row = row
+                    temp_col = col
+                    break
+                if self.board[temp_row][temp_col] == ' ':
+                    possible_moves.add((temp_row, temp_col))
+                    continue
+                if self.board[temp_row][temp_col] == self.board[temp_row][temp_col].lower():
+                    possible_moves.add((temp_row, temp_col))
+                    temp_row = row
+                    temp_col = col
+                    break
+                else:
+                    temp_row = row
+                    temp_col = col
+                    break
+            
+            while True:
+                temp_row += 1
+                temp_col -= 1
+                if temp_row > 7 or temp_col < 0:
+                    temp_row = row
+                    temp_col = col
+                    break
+                if self.board[temp_row][temp_col] == ' ':
+                    possible_moves.add((temp_row, temp_col))
+                    continue
+                if self.board[temp_row][temp_col] == self.board[temp_row][temp_col].lower():
+                    possible_moves.add((temp_row, temp_col))
+                    temp_row = row
+                    temp_col = col
+                    break
+                else:
+                    temp_row = row
+                    temp_col = col
+                    break
+
+            while True:
+                temp_row -= 1
+                temp_col -= 1
+                if temp_row < 0 or temp_col < 0:
+                    temp_row = row
+                    temp_col = col
+                    break
+                if self.board[temp_row][temp_col] == ' ':
+                    possible_moves.add((temp_row, temp_col))
+                    continue
+                if self.board[temp_row][temp_col] == self.board[temp_row][temp_col].lower():
+                    possible_moves.add((temp_row, temp_col))
+                    temp_row = row
+                    temp_col = col
+                    break
+                else:
+                    temp_row = row
+                    temp_col = col
+                    break
+
+        return list(possible_moves)
+
+    def queen_moves(self, tile):
+        if self.board[tile[0]][tile[1]].lower() != 'q':
+            return Exception (f'Error: queen not in {tile}')
+
+        return self.rook_moves(tile, True) + self.bishop_moves(tile, True)
+
+    def king_moves(self, tile):
+        row = tile[0]
+        col = tile[1]
+
+        possible_moves_copy = [(row+1, col), (row+1, col+1), (row, col+1), (row-1, col+1), (row-1, col), (row-1, col-1), (row, col-1), (row+1, col-1)]
+        possible_moves = set(possible_moves_copy)
+        character = self.board[row][col]
+
+        if character.lower() != 'z':
+            return Exception (f'Error: king not in {tile}')
+
+        if character == character.lower():
+            for row, col in possible_moves_copy:
+                if row > 7 or row < 0 or col > 7 or col < 0:
+                    possible_moves.remove((row, col))
+                    continue
+                if self.board[row][col] != ' ':
+                    if self.board[row][col] == self.board[row][col].lower():
+                        possible_moves.remove((row, col))
+        
+        else:
+            for row, col in possible_moves_copy:
+                if row > 7 or row < 0 or col > 7 or col < 0:
+                    possible_moves.remove((row, col))
+                    continue
+                if self.board[row][col] != ' ':
+                    if self.board[row][col] == self.board[row][col].upper():
+                        possible_moves.remove((row, col))
+
+        return list(possible_moves)
+
     def legal_moves(self):
         pass
 
@@ -232,18 +677,20 @@ class Board:
         return list(safe_tiles)
 
 
-            
+
 
 if __name__ == '__main__':
     board = Board()
     board.board = [
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', 'z', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', 'P', ' ', ' ', ' ', 'R'],
-        [' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', 'P', ' ', ' ', ' '],
+        [' ', ' ', ' ', 'b', ' ', 'k', ' ', ' '],
+        [' ', ' ', ' ', 'K', 'Q', 'z', ' ', ' '],
+        [' ', ' ', ' ', 'Q', 'r', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'B'],
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     ]
-    print(board.king_safe_tiles())
+    result = board.king_moves((4, 5))
+    print(result)
+    print(len(result))
