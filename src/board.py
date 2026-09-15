@@ -1,5 +1,6 @@
 import chess
 import random
+from copy import deepcopy
 
 class Board:
     def __init__(self):
@@ -565,200 +566,213 @@ class Board:
             codes.append(prefix)
         return codes
 
-    def get_king_id(self):
+    def get_king_id(self, turn):
+        king = 'Z' if turn == 1 else 'z'
         for row in range(8):
             for col in range(8):
-                if self.board[row][col] == 'z':
+                if self.board[row][col] == king:
                     return row, col
+        return Exception(f'Error: king not on board for turn {turn}')
 
-    def king_safe_tiles(self):
-        king_id = self.get_king_id()
+    def is_king_checked(self, turn):
+        if turn == 1:
+            char_king = 'z'
+            char_queen = 'q'
+            char_knight = 'k'
+            char_bishop = 'b'
+            char_rook = 'r'
+            char_pawn = 'p'
+            char_own_king = 'Z'
+        else:
+            char_king = 'Z'
+            char_queen = 'Q'
+            char_knight = 'K'
+            char_bishop = 'B'
+            char_rook = 'R'
+            char_pawn = 'P'
+            char_own_king = 'z'
+
+        king_id = self.get_king_id(turn=turn)
         row, col = king_id
-        safe_tiles = set([(row-1, col-1), (row-1, col), (row-1, col+1), (row, col-1), (row, col), (row, col+1), (row+1, col-1), (row+1, col), (row+1, col+1)])
 
-        for row, col in list(safe_tiles):
-            if row < 0 or row > 7 or col < 0 or col > 7:
-                safe_tiles.remove((row, col))
+        knight_cover = False
+        knight_ids = [(row+2, col+1), (row+2, col-1), (row+1, col+2), (row+1, col-2), (row-2, col+1), (row-2, col-1), (row-1, col+2), (row-1, col-2)]
+        for knight_row, knight_col in knight_ids:
+            if knight_row < 0 or knight_row > 7 or knight_col < 0 or knight_col > 7:
                 continue
+            if self.board[knight_row][knight_col] == char_knight:
+                knight_cover = True
+                break
 
+        if knight_cover:
+            return True
 
-            knight_cover = False
-            knight_ids = [(row+2, col+1), (row+2, col-1), (row+1, col+2), (row+1, col-2), (row-2, col+1), (row-2, col-1), (row-1, col+2), (row-1, col-2)]
-            for knight_row, knight_col in knight_ids:
-                if knight_row < 0 or knight_row > 7 or knight_col < 0 or knight_col > 7:
-                    continue
-                if self.board[knight_row][knight_col] == 'K':
-                    knight_cover = True
-                    break
-
-            if knight_cover:
-                safe_tiles.remove((row, col))
+        pawn_cover = False
+        pawn_ids = [(row+1, col-1), (row+1, col+1)]
+        for pawn_row, pawn_col in pawn_ids:
+            if pawn_row < 0 or pawn_row > 7 or pawn_col < 0 or pawn_col > 7:
                 continue
+            if self.board[pawn_row][pawn_col] == char_pawn:
+                pawn_cover = True
+                break
 
+        if pawn_cover:
+            return True
 
-            pawn_cover = False
-            pawn_ids = [(row+1, col-1), (row+1, col+1)]
-            for pawn_row, pawn_col in pawn_ids:
-                if pawn_row < 0 or pawn_row > 7 or pawn_col < 0 or pawn_col > 7:
-                    continue
-                if self.board[pawn_row][pawn_col] == 'P':
-                    pawn_cover = True
-                    break
+        cross_cover = False
+        cross_row, cross_col = row, col
+        while True:
+            cross_row += 1
+            cross_col += 1
+            if cross_row > 7 or cross_col > 7:
+                break
+            char = self.board[cross_row][cross_col]
+            if char == char_queen or char == char_bishop:
+                cross_cover = True
+                break
+            if char != ' ' and char != char_own_king:
+                break
 
-            if pawn_cover:
-                safe_tiles.remove((row, col))
-                continue
+        if cross_cover:
+            return True
 
+        cross_row, cross_col = row, col
+        while True:
+            cross_row += 1
+            cross_col -= 1
+            if cross_row > 7 or cross_col < 0:
+                break
+            char = self.board[cross_row][cross_col]
+            if char == char_queen or char == char_bishop:
+                cross_cover = True
+                break
+            if char != ' ' and char != char_own_king:
+                break
 
-            cross_cover = False
-            cross_row, cross_col = row, col
-            while True:
-                cross_row += 1
-                cross_col += 1
-                if cross_row > 7 or cross_col > 7:
-                    break
-                char = self.board[cross_row][cross_col]
-                if char == 'Q' or char == 'B' or char == 'B':
-                    cross_cover = True
-                    break
-                if char != ' ' and char != 'z':
-                    break
+        if cross_cover:
+            return True
 
-            if cross_cover:
-                safe_tiles.remove((row, col))
-                continue
+        cross_row, cross_col = row, col
+        while True:
+            cross_row -= 1
+            cross_col += 1
+            if cross_row < 0 or cross_col > 7:
+                break
+            char = self.board[cross_row][cross_col]
+            if char == char_queen or char == char_bishop:
+                cross_cover = True
+                break
+            if char != ' ' and char != char_own_king:
+                break
 
-            cross_row, cross_col = row, col
-            while True:
-                cross_row += 1
-                cross_col -= 1
-                if cross_row > 7 or cross_col < 0:
-                    break
-                char = self.board[cross_row][cross_col]
-                if char == 'Q' or char == 'B' or char == 'B':
-                    cross_cover = True
-                    break
-                if char != ' ' and char != 'z':
-                    break
+        if cross_cover:
+            return True
 
-            if cross_cover:
-                safe_tiles.remove((row, col))
-                continue
+        cross_row, cross_col = row, col
+        while True:
+            cross_row -= 1
+            cross_col -= 1
+            if cross_row < 0 or cross_col < 0:
+                break
+            char = self.board[cross_row][cross_col]
+            if char == char_queen or char == char_bishop:
+                cross_cover = True
+                break
+            if char != ' ' and char != char_own_king:
+                break
 
-            cross_row, cross_col = row, col
-            while True:
-                cross_row -= 1
-                cross_col += 1
-                if cross_row < 0 or cross_col > 7:
-                    break
-                char = self.board[cross_row][cross_col]
-                if char == 'Q' or char == 'B' or char == 'B':
-                    cross_cover = True
-                    break
-                if char != ' ' and char != 'z':
-                    break
+        if cross_cover:
+            return True
 
-            if cross_cover:
-                safe_tiles.remove((row, col))
-                continue
-
-            cross_row, cross_col = row, col
-            while True:
-                cross_row -= 1
-                cross_col -= 1
-                if cross_row < 0 or cross_col < 0:
-                    break
-                char = self.board[cross_row][cross_col]
-                if char == 'Q' or char == 'B' or char == 'B':
-                    cross_cover = True
-                    break
-                if char != ' ' and char != 'z':
-                    break
-
-            if cross_cover:
-                safe_tiles.remove((row, col))
-                continue
-
-            straight_cover = False
-            straight_row, straight_col = row, col
-            while True:
-                straight_row += 1
-                if straight_row > 7:
-                    break
-                char = self.board[straight_row][straight_col]
-                if char == 'Q' or char == 'R':
-                    straight_cover = True
-                    break
-                if char != ' ' and char != 'z':
-                    break
-                
-            if straight_cover:
-                safe_tiles.remove((row, col))
-                continue
-
-            straight_row, straight_col = row, col
-            while True:
-                straight_row -= 1
-                if straight_row < 0:
-                    break
-                char = self.board[straight_row][straight_col]
-                if char == 'Q' or char == 'R':
-                    straight_cover = True
-                    break
-                if char != ' ' and char != 'z':
-                    break
-                
-            if straight_cover:
-                safe_tiles.remove((row, col))
-                continue
-            
-            straight_row, straight_col = row, col
-            while True:
-                straight_col += 1
-                if straight_col > 7:
-                    break
-                char = self.board[straight_row][straight_col]
-                if char == 'Q' or char == 'R':
-                    straight_cover = True
-                    break
-                if char != ' ' and char != 'z':
-                    break
-                
-            if straight_cover:
-                safe_tiles.remove((row, col))
-                continue
-            
-            straight_row, straight_col = row, col
-            while True:
-                straight_col -= 1
-                if straight_col < 0:
-                    break
-                char = self.board[straight_row][straight_col]
-                if char == 'Q' or char == 'R':
-                    straight_cover = True
-                    break
-                if char != ' ' and char != 'z':
-                    break
-                
-            if straight_cover:
-                safe_tiles.remove((row, col))
-                continue
-
-            
-            king_cover = False
-            king_ids = [(row-1, col-1), (row-1, col), (row-1, col+1), (row, col-1), (row, col+1), (row+1, col-1), (row+1, col), (row+1, col+1)]
-            for king_row, king_col in king_ids:
-                if king_row < 0 or king_row > 7 or king_col < 0 or king_col > 7:
-                    continue
-                if self.board[king_row][king_col] == 'Z':
-                    king_cover = True
-                    break
-            
-            if king_cover:
-                safe_tiles.remove((row, col))
-                continue
+        straight_cover = False
+        straight_row, straight_col = row, col
+        while True:
+            straight_row += 1
+            if straight_row > 7:
+                break
+            char = self.board[straight_row][straight_col]
+            if char == char_queen or char == char_rook:
+                straight_cover = True
+                break
+            if char != ' ' and char != char_own_king:
+                break
         
-        return list(safe_tiles)
+        if straight_cover:
+            return True
+
+        straight_row, straight_col = row, col
+        while True:
+            straight_row -= 1
+            if straight_row < 0:
+                break
+            char = self.board[straight_row][straight_col]
+            if char == char_queen or char == char_rook:
+                straight_cover = True
+                break
+            if char != ' ' and char != char_own_king:
+                break
+        
+        if straight_cover:
+            return True
+        
+        straight_row, straight_col = row, col
+        while True:
+            straight_col += 1
+            if straight_col > 7:
+                break
+            char = self.board[straight_row][straight_col]
+            if char == char_queen or char == char_rook:
+                straight_cover = True
+                break
+            if char != ' ' and char != char_own_king:
+                break
+
+        if straight_cover:
+            return True
+        
+        straight_row, straight_col = row, col
+        while True:
+            straight_col -= 1
+            if straight_col < 0:
+                break
+            char = self.board[straight_row][straight_col]
+            if char == char_queen or char == char_rook:
+                straight_cover = True
+                break
+            if char != ' ' and char != char_own_king:
+                break
+
+        if straight_cover:
+            return True
+        
+        king_cover = False
+        king_ids = [(row-1, col-1), (row-1, col), (row-1, col+1), (row, col-1), (row, col+1), (row+1, col-1), (row+1, col), (row+1, col+1)]
+        for king_row, king_col in king_ids:
+            if king_row < 0 or king_row > 7 or king_col < 0 or king_col > 7:
+                continue
+            if self.board[king_row][king_col] == char_king:
+                king_cover = True
+                break
+
+        if king_cover:
+            return True
+    
+        return False
+
+    def play_random_move(self, turn):
+        all_moves = set(self.legal_moves(turn))
+        original_board = deepcopy(self.board)
+
+        move = random.choice(list(all_moves))
+        self.play_move(move)
+
+        while self.is_king_checked(turn):
+            self.board = deepcopy(original_board)
+            all_moves.remove(move)
+            move = random.choice(list(all_moves))
+            self.play_move(move)
+
+        return move
 
 
 
@@ -766,16 +780,13 @@ class Board:
 if __name__ == '__main__':
     cboard = chess.Board()
     board = Board()
-    board.init_board()
-    for row in board.board:
-        print(row)
-    print("\n")
-    for x in range(10):
-        moves = [m.uci() for m in cboard.legal_moves]
-        move = random.choice(moves)
-        board.play_move(move)
-        cboard.push_uci(move)
-        for row in board.board:
-            print(row)
-        print("\n")
-        
+    board.board = [
+        [' ', ' ', ' ', ' ', ' ', ' ', 'B', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', 'r', 'K', ' ', ' ', ' '],
+        [' ', ' ', ' ', 'z', 'r', ' ', ' ', ' '],
+        [' ', ' ', 'r', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    ]

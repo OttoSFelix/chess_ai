@@ -13,6 +13,9 @@ def get_chess_legal_moves(cboard: chess.Board) -> list[str]:
     """Returns sorted list of legal moves in UCI format from python-chess."""
     return sorted(move.uci() for move in cboard.legal_moves)
 
+def get_chess_pseudo_legal_moves(cboard: chess.Board) -> list[str]:
+    """Returns sorted list of legal moves in UCI format from python-chess."""
+    return sorted(move.uci() for move in cboard.pseudo_legal_moves)
 
 def get_custom_legal_moves(board: Board, cboard: chess.Board) -> list[str]:
     """Returns sorted list of legal moves in UCI format from custom Board."""
@@ -84,6 +87,23 @@ def test_legal_moves_after_three_random_moves():
 
     assert actual == expected
 
+def test_pseudo_legal_moves_after_20_random_moves():
+    """Test pseudo legal moves after 20 random moves."""
+    random.seed(0)
+    cboard = chess.Board()
+    board = Board()
+    board.init_board()
+
+    for _ in range(20):
+        move = random.choice(list(cboard.legal_moves)).uci()
+        cboard.push_uci(move)
+        board.play_move(move)
+
+    cboard.set_castling_fen("-")
+    expected = get_chess_pseudo_legal_moves(cboard)
+    actual = get_custom_legal_moves(board, cboard)
+
+    assert actual == expected
 
 @pytest.mark.parametrize("seed", [0, 3, 7, 8])
 def test_random_sequence_step_by_step(seed):
