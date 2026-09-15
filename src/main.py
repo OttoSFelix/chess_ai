@@ -41,8 +41,7 @@ def main():
 
         opponent_move = input()
         if opponent_move.startswith("BOARD:"):
-            board.init_board()
-            turn = 1
+            continue
         elif opponent_move.startswith("RESET:"):
             cboard.reset()
             board.init_board()

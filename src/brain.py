@@ -57,9 +57,9 @@ class Brain:
 
         self.board = Board()
         self.board.init_board()
-    
+
     def negamax_move(self, board, original_turn):
-    
+
         all_move_values = []
 
         def traverse(board_state, turn, depth):
@@ -83,14 +83,15 @@ class Brain:
                 check_bonus = 0
                 if self.board.is_king_checked(-turn):
                     check_bonus += 200
-                    
+
                 next_eval = -traverse(self.board.board, -turn, depth+1) + check_bonus
                 move_values.append((move, next_eval))
                 self.board.board = deepcopy(original_board)
-
+            if not move_values:
+                return -20000
             return max(move_values, key=lambda x: x[1])[1]
 
-        
+
         self.board.board = deepcopy(board)
         for move in self.board.legal_moves(original_turn):
             self.board.play_move(move)
@@ -107,6 +108,7 @@ class Brain:
             all_move_values.append((move, next_eval))
             self.board.board = deepcopy(board)
 
+        print(f'found {len(all_move_values)} moves: {[n[0] for n in all_move_values]}')
         return max(all_move_values, key=lambda x: x[1])[0]
 
 
@@ -135,7 +137,7 @@ class Brain:
                     if piece.lower() in self.positional_pieces:
                         positional_value = self.position_lookup[piece.lower()][7-row][col]
                     black_total += piece_value + positional_value
-        
+
         total_eval = white_total - black_total
 
         return total_eval * turn
@@ -154,7 +156,7 @@ if __name__ == '__main__':
         move = random.choice(possible_moves)
         cboard.push_uci(move)
         board.play_move(move)
-    
+
     print('Original:')
     for row in board.board:
         print(row)
