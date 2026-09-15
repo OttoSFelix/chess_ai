@@ -2,6 +2,7 @@ import random
 import time
 from board import Board
 import chess
+from brain import Brain
 
 def set_board(board: Board, board_position:str):
     print(f"Set board to {board_position}!", flush=True)
@@ -11,8 +12,6 @@ def make_move(board: Board):
     legal_moves = [move.uci() for move in list(board.legal_moves)]
     print(f"I found {len(legal_moves)} legal moves: {', '.join(legal_moves)}", flush=True)
     choice = random.choice(legal_moves)
-    board.push_uci(choice)
-
     return choice
 
 def debug_legal_moves(board: Board, debug_board: chess.Board, turn):
@@ -30,33 +29,35 @@ def debug_legal_moves(board: Board, debug_board: chess.Board, turn):
 
 def main():
 
-    debug_board = chess.Board()
+    cboard = chess.Board()
 
     board = Board()
     board.init_board()
     turn = 1
 
+    brain = Brain()
+
     while True:
-        # correct = debug_legal_moves(board, debug_board, turn)
-        # if not correct:
-        #     print('Incorrect synchronization between boards!', flush=True)
-        #     break
 
         opponent_move = input()
-        time.sleep(random.randrange(1,10)/100)
         if opponent_move.startswith("BOARD:"):
             board.init_board()
             turn = 1
         elif opponent_move.startswith("RESET:"):
-            debug_board.reset()
+            cboard.reset()
             board.init_board()
             turn = 1
             print("Board reset!", flush=True)
         elif opponent_move.startswith("PLAY:"):
-            print('Playing random move!!!', flush=True)
-            choice = board.play_random_move(turn)
+            if cboard.turn == chess.WHITE:
+                print('Playing random move!!!', flush=True)
+                choice = make_move(cboard)
+            else:
+                print('Playing AI move!!!', flush=True)
+                choice = brain.negamax_move(board.board, turn)
 
-            debug_board.push_uci(choice)
+            cboard.push_uci(choice)
+            board.play_move(choice)
             print(f"I chose {choice}!", flush=True)
 
             print(f"MOVE:{choice}", flush=True)
@@ -66,7 +67,7 @@ def main():
             board.play_move(move)
             turn = -turn
 
-            debug_board.push_uci(move)
+            cboard.push_uci(move)
             print(f"Received move: {move}", flush=True)
         else:
             print(f"Unknown tag: {opponent_move}", flush=True)

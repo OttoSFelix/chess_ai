@@ -608,7 +608,7 @@ class Board:
             return True
 
         pawn_cover = False
-        pawn_ids = [(row+1, col-1), (row+1, col+1)]
+        pawn_ids = [(row - turn, col-1), (row - turn, col+1)]
         for pawn_row, pawn_col in pawn_ids:
             if pawn_row < 0 or pawn_row > 7 or pawn_col < 0 or pawn_col > 7:
                 continue
