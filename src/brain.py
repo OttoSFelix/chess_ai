@@ -72,7 +72,14 @@ class Brain:
 
         def traverse(board_state, turn, depth):
 
-            if depth == 3:
+            if depth >= 3:
+                state_value = self.get_state_value(board_state, turn) * turn
+                if state_value > 300:
+                    print('Additional depth calculated!!!', flush=True)
+                else:
+                    return state_value
+
+            if depth == 5:
                 return self.get_state_value(board_state, turn) * turn
 
             self.board.board = deepcopy(board_state)
@@ -192,8 +199,8 @@ class Brain:
 
 if __name__ == '__main__':
     cboard = chess.Board()
-    brain = Brain()
     board = Board()
+    brain = Brain(board)
     board.init_board()
 
     random.seed(40)
@@ -208,4 +215,4 @@ if __name__ == '__main__':
         print(row)
     print()
 
-    print(brain.negamax_move(board.board, 1))
+    print(brain.negamax_move(board, 1))
