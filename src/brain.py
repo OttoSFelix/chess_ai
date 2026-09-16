@@ -4,7 +4,7 @@ import chess
 import random
 
 class Brain:
-    def __init__(self):
+    def __init__(self, game_board: Board):
         self.piece_values = {'p': 100, 'k': 320, 'b': 330, 'r': 500, 'q': 900, 'z': 20000}
         self.pawn_position = [
             [0,   0,   0,   0,   0,   0,   0,   0],
@@ -58,7 +58,15 @@ class Brain:
         self.board = Board()
         self.board.init_board()
 
-    def negamax_move(self, board, original_turn):
+        self.actual_board = game_board
+
+    def negamax_move(self, game_board: Board, original_turn):
+
+        self.board.white_can_castle_kingside = game_board.white_can_castle_kingside
+        self.board.white_can_castle_queenside = game_board.white_can_castle_queenside
+        self.board.black_can_castle_kingside = game_board.black_can_castle_kingside
+        self.board.black_can_castle_queenside = game_board.black_can_castle_queenside
+        self.board.board = deepcopy(game_board.board)
 
         all_move_values = []
 
@@ -74,10 +82,24 @@ class Brain:
             move_values = []
             for move in possible_moves:
                 original_board = deepcopy(board_state)
+
+                castling_state = (
+                    self.board.white_can_castle_kingside,
+                    self.board.white_can_castle_queenside,
+                    self.board.black_can_castle_kingside,
+                    self.board.black_can_castle_queenside,
+                )
+
                 self.board.play_move(move)
 
                 if self.board.is_king_checked(turn):
                     self.board.board = deepcopy(original_board)
+                    (
+                        self.board.white_can_castle_kingside,
+                        self.board.white_can_castle_queenside,
+                        self.board.black_can_castle_kingside,
+                        self.board.black_can_castle_queenside,
+                    ) = castling_state
                     continue
 
                 check_bonus = 0
@@ -87,17 +109,35 @@ class Brain:
                 next_eval = -traverse(self.board.board, -turn, depth+1) + check_bonus
                 move_values.append((move, next_eval))
                 self.board.board = deepcopy(original_board)
+                (
+                    self.board.white_can_castle_kingside,
+                    self.board.white_can_castle_queenside,
+                    self.board.black_can_castle_kingside,
+                    self.board.black_can_castle_queenside,
+                ) = castling_state
+
             if not move_values:
                 return -20000
             return max(move_values, key=lambda x: x[1])[1]
 
 
-        self.board.board = deepcopy(board)
         for move in self.board.legal_moves(original_turn):
             self.board.play_move(move)
+            castling_state = (
+                self.board.white_can_castle_kingside,
+                self.board.white_can_castle_queenside,
+                self.board.black_can_castle_kingside,
+                self.board.black_can_castle_queenside,
+            )
 
             if self.board.is_king_checked(original_turn):
-                    self.board.board = deepcopy(board)
+                    self.board.board = deepcopy(game_board.board)
+                    (
+                        self.board.white_can_castle_kingside,
+                        self.board.white_can_castle_queenside,
+                        self.board.black_can_castle_kingside,
+                        self.board.black_can_castle_queenside,
+                    ) = castling_state
                     continue
 
             check_bonus = 0
@@ -106,7 +146,13 @@ class Brain:
 
             next_eval = -traverse(self.board.board, -original_turn, 1) + check_bonus
             all_move_values.append((move, next_eval))
-            self.board.board = deepcopy(board)
+            self.board.board = deepcopy(game_board.board)
+            (
+                self.board.white_can_castle_kingside,
+                self.board.white_can_castle_queenside,
+                self.board.black_can_castle_kingside,
+                self.board.black_can_castle_queenside,
+            ) = castling_state
 
         print(f'found {len(all_move_values)} moves: {[n[0] for n in all_move_values]}')
         return max(all_move_values, key=lambda x: x[1])[0]

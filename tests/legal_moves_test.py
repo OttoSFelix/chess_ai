@@ -99,7 +99,6 @@ def test_pseudo_legal_moves_after_20_random_moves():
         cboard.push_uci(move)
         board.play_move(move)
 
-    cboard.set_castling_fen("-")
     expected = get_chess_pseudo_legal_moves(cboard)
     actual = get_custom_legal_moves(board, cboard)
 

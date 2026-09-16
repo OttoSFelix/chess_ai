@@ -35,7 +35,7 @@ def main():
     board.init_board()
     turn = 1
 
-    brain = Brain()
+    brain = Brain(board)
 
     while True:
 
@@ -53,7 +53,7 @@ def main():
                 choice = make_move(cboard)
             else:
                 print('Playing AI move!!!', flush=True)
-                choice = brain.negamax_move(board.board, turn)
+                choice = brain.negamax_move(board, turn)
 
             cboard.push_uci(choice)
             board.play_move(choice)

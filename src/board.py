@@ -37,6 +37,11 @@ class Board:
 
         self.board = []
 
+        self.white_can_castle_kingside = True
+        self.white_can_castle_queenside = True
+        self.black_can_castle_kingside = True
+        self.black_can_castle_queenside = True
+
     def init_board(self):
         self.board = [
             ['r', 'k', 'b', 'q', 'z', 'b', 'k', 'r'],
@@ -49,6 +54,11 @@ class Board:
             ['R', 'K', 'B', 'Q', 'Z', 'B', 'K', 'R'],
         ]
 
+        self.white_can_castle_kingside = True
+        self.white_can_castle_queenside = True
+        self.black_can_castle_kingside = True
+        self.black_can_castle_queenside = True
+
     def play_move(self, code):
         origin = self.tile_lookup[code[0:2]]
         target = self.tile_lookup[code[2:4]]
@@ -58,12 +68,28 @@ class Board:
         self.board[target[0]][target[1]] = piece
 
         if piece.lower() == 'z':
+            if piece == piece.lower():
+                self.black_can_castle_kingside = False
+                self.black_can_castle_queenside = False
+            else:
+                self.white_can_castle_kingside = False
+                self.white_can_castle_queenside = False
             if target[1] - origin[1] == 2:
                 self.board[target[0]][target[1]-1] = self.board[target[0]][target[1]+1]
                 self.board[target[0]][target[1]+1] = ' '
             elif target[1] - origin[1] == -2:
                 self.board[target[0]][target[1]+1] = self.board[target[0]][target[1]-2]
                 self.board[target[0]][target[1]-2] = ' '
+
+        elif piece.lower() == 'r':
+            if origin == (7, 7):
+                self.white_can_castle_kingside = False
+            elif origin == (7, 0):
+                self.white_can_castle_queenside = False
+            elif origin == (0, 7):
+                self.black_can_castle_kingside = False
+            elif origin == (0, 0):
+                self.black_can_castle_queenside = False
                 
 
         elif len(code) == 5:
@@ -500,8 +526,26 @@ class Board:
         col = tile[1]
 
         possible_moves_copy = [(row+1, col), (row+1, col+1), (row, col+1), (row-1, col+1), (row-1, col), (row-1, col-1), (row, col-1), (row+1, col-1)]
-        possible_moves = set(possible_moves_copy)
         character = self.board[row][col]
+
+        if character == character.lower():
+            if not self.is_king_checked(-1):
+                if self.black_can_castle_kingside:
+                    if self.board[row][col+1] == ' ' and self.board[row][col+2] == ' ':
+                        possible_moves_copy += [(row, col+2)]
+                if self.black_can_castle_queenside:
+                    if self.board[row][col-1] == ' ' and self.board[row][col-2] == ' ' and self.board[row][col-3] == ' ':
+                        possible_moves_copy += [(row, col-2)]
+        else:
+            if not self.is_king_checked(1):
+                if self.white_can_castle_kingside:
+                    if self.board[row][col+1] == ' ' and self.board[row][col+2] == ' ':
+                        possible_moves_copy += [(row, col+2)]
+                if self.white_can_castle_queenside:
+                    if self.board[row][col-1] == ' ' and self.board[row][col-2] == ' ' and self.board[row][col-3] == ' ':
+                        possible_moves_copy += [(row, col-2)]
+
+        possible_moves = set(possible_moves_copy)
 
         if character.lower() != 'z':
             return Exception (f'Error: king not in {tile}')
