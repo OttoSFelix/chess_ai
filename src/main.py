@@ -29,8 +29,6 @@ def debug_legal_moves(board: Board, debug_board: chess.Board, turn):
 
 def main():
 
-    cboard = chess.Board()
-
     board = Board()
     board.init_board()
     turn = 1
@@ -41,21 +39,17 @@ def main():
 
         opponent_move = input()
         if opponent_move.startswith("BOARD:"):
-            continue
+            print(opponent_move)
+            fen = opponent_move.removeprefix('BOARD:')
+            turn = board.push_fen(fen)
         elif opponent_move.startswith("RESET:"):
-            cboard.reset()
             board.init_board()
             turn = 1
             print("Board reset!", flush=True)
         elif opponent_move.startswith("PLAY:"):
-            if cboard.turn == chess.WHITE:
-                print('Playing random move!!!', flush=True)
-                choice = make_move(cboard)
-            else:
-                print('Playing AI move!!!', flush=True)
-                choice = brain.negamax_move(board, turn)
+            print('Playing AI move!!!', flush=True)
+            choice = brain.negamax_move(board, turn)
 
-            cboard.push_uci(choice)
             board.play_move(choice)
             print(f"I chose {choice}!", flush=True)
 
@@ -65,8 +59,6 @@ def main():
             move = opponent_move.removeprefix("MOVE:")
             board.play_move(move)
             turn = -turn
-
-            cboard.push_uci(move)
             print(f"Received move: {move}", flush=True)
         else:
             print(f"Unknown tag: {opponent_move}", flush=True)

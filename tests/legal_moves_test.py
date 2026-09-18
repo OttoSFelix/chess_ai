@@ -19,7 +19,7 @@ def get_chess_pseudo_legal_moves(cboard: chess.Board) -> list[str]:
 
 def get_custom_legal_moves(board: Board, cboard: chess.Board) -> list[str]:
     """Returns sorted list of legal moves in UCI format from custom Board."""
-    turn = 1 if cboard.turn == chess.WHITE else 0
+    turn = 1 if cboard.turn == chess.WHITE else -1
     return sorted(board.legal_moves(turn))
 
 

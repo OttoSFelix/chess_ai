@@ -62,7 +62,14 @@ class Brain:
 
         self.check_bonus = 0
 
+        self.last_moves_black = (None, None, None)
+        self.last_moves_white = (None, None, None)
+
     def negamax_move(self, game_board: Board, original_turn):
+        if original_turn == 1:
+            print(f'Last 2 moves for white: {self.last_moves_white}')
+        else:
+            print(f'Last 2 moves for black: {self.last_moves_black}')
 
         self.board.white_can_castle_kingside = game_board.white_can_castle_kingside
         self.board.white_can_castle_queenside = game_board.white_can_castle_queenside
@@ -70,17 +77,26 @@ class Brain:
         self.board.black_can_castle_queenside = game_board.black_can_castle_queenside
         self.board.board = [row[:] for row in game_board.board]
 
+        self.max_depth = 0
+
         def traverse(turn, depth, alpha, beta, previous):
 
+            self.max_depth = max(self.max_depth, depth)
+
             if depth >= 3:
-                if previous < 300:
-                    state_value = self.get_state_value(self.board.board, turn)
+                state_value = self.get_state_value(self.board.board, turn)
+                if previous < 300 and (state_value > 2000 or state_value < 2000):
                     return state_value
-                else:
-                    print(f'Additional depth calculated, depth = {depth}', flush=True)
 
             if depth >= 5:
-                return self.get_state_value(self.board.board, turn)
+                state_value = self.get_state_value(self.board.board, turn)
+                if state_value > 2000 or state_value < 2000:
+                    return state_value
+                else:
+                    print(f'Depth exceeded 5 with depth {depth}')
+
+            if depth >= 10:
+                return self.get_state_value
 
 
             original_board = [row[:] for row in self.board.board]
@@ -152,6 +168,10 @@ class Brain:
                 self.board.black_can_castle_queenside,
             )
         for move in self.board.legal_moves(original_turn):
+            if original_turn == 1 and self.last_moves_white[-2] == move and self.last_moves_white[-3] == self.last_moves_white[-1]:
+                continue
+            if original_turn == -1 and self.last_moves_black[-2] == move and self.last_moves_black[-3] == self.last_moves_black[-1]:
+                continue
 
             horizon_eval = self.get_state_value(self.board.board, original_turn)
 
@@ -185,7 +205,11 @@ class Brain:
                 self.board.black_can_castle_kingside,
                 self.board.black_can_castle_queenside,
             ) = castling_state
-
+        print(f'maximum depth reached = {self.max_depth}')
+        if original_turn == 1:
+            self.last_moves_white = (self.last_moves_white[1], self.last_moves_white[2], best_move)
+        else:
+            self.last_moves_black = (self.last_moves_black[1], self.last_moves_black[2], best_move)
         return best_move
 
 
@@ -234,11 +258,19 @@ if __name__ == '__main__':
     #     cboard.push_uci(move)
     #     board.play_move(move)
 
-    board.play_move('b8d3')
+    turn = board.push_fen("1r4k1/rpp1qppp/p1nbpn2/3p2Nb/3P4/P1NBPP1P/RPPB2P1/3Q1RK1 w - - 23 25")
 
-    print('Original:')
-    for row in board.board:
-        print(row)
-    print()
+    legal_moves = board.legal_moves(1)
+    original_board = [row[:] for row in board.board]
+    evaluations = []
+    for move in legal_moves:
+        board.play_move(move)
+        eval = brain.get_state_value(board.board, 1)
+        evaluations.append((move, eval))
+        board.board = [row[:] for row in original_board]
+    
+    evaluations.sort(key=lambda x: x[1])
 
-    print(brain.negamax_move(board, 1))
+    print(evaluations)
+
+    # print(brain.negamax_move(board, 1))

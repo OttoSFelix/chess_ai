@@ -805,20 +805,91 @@ class Board:
 
     def play_random_move(self, turn):
         all_moves = set(self.legal_moves(turn))
-        original_board = deepcopy(self.board)
+        original_board = [row[:] for row in self.board]
+        castling_state = (
+            self.white_can_castle_kingside,
+            self.white_can_castle_queenside,
+            self.black_can_castle_kingside,
+            self.black_can_castle_queenside
+        )
 
         move = random.choice(list(all_moves))
         self.play_move(move)
 
         while self.is_king_checked(turn):
-            self.board = deepcopy(original_board)
+            self.board = [row[:] for row in original_board]
+            (
+                self.white_can_castle_kingside,
+                self.white_can_castle_queenside,
+                self.black_can_castle_kingside,
+                self.black_can_castle_queenside
+            ) = castling_state
+
             all_moves.remove(move)
             move = random.choice(list(all_moves))
             self.play_move(move)
 
+        self.board = [row[:] for row in original_board]
+        (
+            self.white_can_castle_kingside,
+            self.white_can_castle_queenside,
+            self.black_can_castle_kingside,
+            self.black_can_castle_queenside
+        ) = castling_state
+
         return move
 
+    def push_fen(self, fen):
+        char_lookup = {'n': 'k', 'N': 'K', 'k': 'z', 'K': 'Z'}
+        possible_chars = set(['p', 'P', 'r', 'R', 'n', 'N', 'q', 'Q', 'b', 'B'])
+        col = 0
+        row = 0
+        turn = None
+        self.white_can_castle_kingside = False
+        self.white_can_castle_queenside = False
+        self.black_can_castle_kingside = False
+        self.black_can_castle_queenside = False
+        for pointer in range(len(fen)):
+            char = fen[pointer]
+            print(char, end='')
+            if char == '/':
+                row += 1
+                col = 0
+                continue
+            if row > 7 or col > 7:
+                side = fen[pointer+1]
+                turn = 1 if side == 'w' else -1
+                break
+            
+            try:
+                num = int(char)
+            except:
+                num = False
+            if num:
+                for n in range(num):
+                    self.board[row][col+n] = ' '
+                col += num
+                if col > 7 and fen[pointer+1] != '/':
+                    row += 1
+            else:
+                char = char_lookup.get(char, char)
+                self.board[row][col] = char
+                col += 1
 
+        for p in range(pointer+3, len(fen)):
+            char = fen[p]
+            if char == 'K':
+                self.white_can_castle_kingside = True
+            elif char == 'Q':
+                self.white_can_castle_queenside = True
+            elif char == 'k':
+                self.black_can_castle_kingside = True
+            elif char == 'q':
+                self.black_can_castle_queenside = True
+            else:
+                break
+
+        return turn
 
 
 if __name__ == '__main__':
