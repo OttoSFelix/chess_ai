@@ -1,0 +1,16 @@
+#log-box {
+	flex-grow: 1;
+	font-family: monospace;
+	box-shadow: 0 4px 8px 0 var(--primary);
+	transition: 0.3s;
+	border-radius: 20px;
+	padding: 20px;
+	min-height: 160px;
+}
+
+textarea {
+	width: 100%;
+	height: 100%;
+	overflow-y: scroll;
+	resize: none !important;
+}

@@ -1,0 +1,19 @@
+@import "./constants.css";
+
+#settings {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+}
+
+@media screen and (max-width: 1254px) {
+	#settings {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.classic-button {
+		margin-bottom: 5px;
+	}
+}

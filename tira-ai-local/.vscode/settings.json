@@ -1,0 +1,9 @@
+{
+    "python.testing.cwd": "${workspaceFolder}/background-service/src",
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "pylint.cwd": "${workspaceFolder}/background-service/src",
+    "pylint.args": [
+        "--rcfile=${workspaceFolder}/background-service/.pylintrc"
+    ],
+}

@@ -1,0 +1,55 @@
+@import "./constants.css";
+
+#app-center {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.cards {
+	box-shadow: 0 4px 8px 0 var(--primary);
+	transition: 0.3s;
+	border-radius: 20px;
+	padding: 20px;
+	max-height: 500px;
+	width: 20%;
+	min-width: 140px;
+}
+
+.cards:empty {
+	display: none;
+}
+
+.cards-header {
+	text-align: center;
+	font-size: 1.8em;
+}
+
+#misc-buttons {
+	flex-direction: column;
+	display: flex;
+	gap: 5px;
+}
+
+.game-layout {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-width: 300px;
+	max-width: 100%;
+}
+
+#fen {
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+@media screen and (max-width: 1254px) {
+	#fen {
+		display: none;
+	}
+}
+
+#Notification {
+	font-family: monospace;
+}

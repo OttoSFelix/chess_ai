@@ -1,0 +1,31 @@
+{
+    "packagerConfig": {},
+    "makers": [
+      {
+        "name": "@electron-forge/maker-zip"
+      }
+    ],
+    "build": {
+      "extraResources": ["./../background-service/**"]
+    },
+    "plugins": [
+      {
+        "name": "@electron-forge/plugin-webpack",
+        "config": {
+          "mainConfig": "./webpack.main.config.ts",
+          "devContentSecurityPolicy": "connect-src 'self' http://localhost:5000 ws://localhost:5000 'unsafe-eval'",
+          "renderer": {
+            "config": "./webpack.renderer.config.ts",
+            "entryPoints": [
+              {
+                "name": "main_window",
+                "html": "./src/renderer/index.html",
+                "js": "./src/renderer/index.ts"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+  

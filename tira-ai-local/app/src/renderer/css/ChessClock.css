@@ -1,0 +1,137 @@
+@import "./constants.css";
+
+.chess-clock-wrapper {
+	width: 100%;
+	max-width: 480px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	user-select: none;
+}
+
+.chess-clock-bar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background-color: #2b2b2b;
+	color: #f0f0f0;
+	padding: 8px 16px;
+	border-radius: 8px;
+	border: 2px solid transparent;
+	transition: all 0.25s ease-in-out;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.chess-clock-bar.black-clock {
+	background: linear-gradient(135deg, #1f1f1f 0%, #2e2e2e 100%);
+}
+
+.chess-clock-bar.white-clock {
+	background: linear-gradient(135deg, #2e2e2e 0%, #3d3d3d 100%);
+}
+
+.chess-clock-bar.active {
+	border-color: #4caf50;
+	box-shadow: 0 0 10px rgba(76, 175, 80, 0.45);
+}
+
+.chess-clock-bar.low-time {
+	border-color: #f44336;
+	background: linear-gradient(135deg, #4a1515 0%, #2e1010 100%);
+	animation: pulse-danger 1s infinite alternate;
+}
+
+@keyframes pulse-danger {
+	from {
+		box-shadow: 0 0 4px rgba(244, 67, 54, 0.3);
+	}
+	to {
+		box-shadow: 0 0 12px rgba(244, 67, 54, 0.7);
+	}
+}
+
+.chess-clock-player {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: bold;
+	font-size: 1.1em;
+}
+
+.chess-clock-icon {
+	font-size: 1.4em;
+	line-height: 1;
+}
+
+.chess-clock-badge {
+	font-size: 0.75em;
+	padding: 2px 6px;
+	border-radius: 4px;
+	background-color: #4caf50;
+	color: white;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.chess-clock-time {
+	font-family: "Courier New", Courier, monospace;
+	font-size: 1.8em;
+	font-weight: 700;
+	letter-spacing: 1px;
+	font-variant-numeric: tabular-nums;
+}
+
+.chess-clock-controls {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 6px 10px;
+	background-color: rgba(0, 0, 0, 0.05);
+	border-radius: 6px;
+	font-size: 0.9em;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.chess-clock-config {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.chess-clock-config label {
+	margin: 0;
+	font-weight: 600;
+}
+
+.chess-clock-input {
+	width: 60px;
+	padding: 4px 6px;
+	border-radius: 4px;
+	border: 1px solid #ccc;
+	text-align: center;
+	font-weight: bold;
+}
+
+.chess-clock-increment-tag {
+	font-size: 0.8em;
+	color: #666;
+	background-color: #e9ecef;
+	padding: 2px 6px;
+	border-radius: 4px;
+}
+
+.chess-clock-reset-btn {
+	padding: 4px 10px;
+	font-size: 0.85em;
+	cursor: pointer;
+	border: none;
+	border-radius: 4px;
+	background-color: var(--primary, #333);
+	color: white;
+	transition: background-color 0.2s;
+}
+
+.chess-clock-reset-btn:hover {
+	background-color: var(--secondary, #555);
+}

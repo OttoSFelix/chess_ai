@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "tira-ai-local-background-service"
+version = "1.0.4"
+description = ""
+authors = ["Your Name <you@example.com>"]
+packages = [{ include = "**/*.py", from = "src" }]
+
+[tool.poetry.scripts]
+cli = "app:run"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+chess = "^1.10.0"
+flask = "^3.0.2"
+flask-socketio = "^5.3.6"
+flask-cors = "^4.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pex = "^2.2.2"
+invoke = "^2.2.0"
+pytest = "^8.1.1"
+pylint = "^3.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

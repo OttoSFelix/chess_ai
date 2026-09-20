@@ -1,0 +1,65 @@
+@import "./constants.css";
+
+#ai-form {
+	text-align: center;
+	text-wrap: nowrap;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+
+#ai-form form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+	width: 100%;
+	height: 100%;
+}
+
+.folder-submit {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.folder-submit h2 {
+	font-size: min(max(2.5vw, 20px), 30px);
+}
+
+#fileinput {
+	border: 2px dashed var(--primary);
+	padding: 2px;
+	cursor: pointer;
+	text-wrap: wrap;
+	text-overflow: ellipsis;
+	height: 100px;
+}
+
+#fileinput:hover {
+	background-color: var(--secondary);
+	color: var(--primary);
+}
+
+#file-text-input {
+	margin-top: 10px;
+	width: 100%;
+}
+
+#feninput {
+	width: 100%;
+}
+
+@media screen and (max-width: 1254px) {
+	#fenextra {
+		display: none;
+	}
+}
+
+#run-setup {
+	margin-top: 10px;
+}
+
+#ai-form label {
+	margin-right: 5px;
+}

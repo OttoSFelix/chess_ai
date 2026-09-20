@@ -1,0 +1,28 @@
+@import "./constants.css";
+
+.classic-button {
+	display: flex;
+	background-color: var(--primary);
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 1.1em;
+	transition: background-color 0.3s ease;
+	position: relative;
+	padding: 10px;
+	margin: 0.03%;
+	font-family: Arial;
+	margin-right: 5px;
+}
+
+.classic-button:hover {
+	color: var(--primary);
+	background-color: var(--secondary);
+}
+
+.classic-button:disabled {
+	color: var(--secondary);
+	background-color: var(--secondary);
+	cursor: default;
+}
