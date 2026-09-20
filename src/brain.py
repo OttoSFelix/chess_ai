@@ -66,10 +66,6 @@ class Brain:
         self.last_moves_white = (None, None, None)
 
     def negamax_move(self, game_board: Board, original_turn):
-        if original_turn == 1:
-            print(f'Last 2 moves for white: {self.last_moves_white}')
-        else:
-            print(f'Last 2 moves for black: {self.last_moves_black}')
 
         self.board.white_can_castle_kingside = game_board.white_can_castle_kingside
         self.board.white_can_castle_queenside = game_board.white_can_castle_queenside
@@ -79,24 +75,28 @@ class Brain:
 
         self.max_depth = 0
 
+        original_state_value = self.get_state_value(self.board.board, original_turn)
+
         def traverse(turn, depth, alpha, beta, previous):
 
             self.max_depth = max(self.max_depth, depth)
 
+            self.check_bonus = 0
+
+            state_value = self.get_state_value(self.board.board, turn)
             if depth >= 3:
-                state_value = self.get_state_value(self.board.board, turn)
-                if previous < 300 and (state_value > 2000 or state_value < 2000):
+                if previous < 300 and original_state_value < 2000 and original_state_value > -2000:
                     return state_value
 
             if depth >= 5:
-                state_value = self.get_state_value(self.board.board, turn)
-                if state_value > 2000 or state_value < 2000:
-                    return state_value
-                else:
-                    print(f'Depth exceeded 5 with depth {depth}')
+                if original_state_value < 2000 and original_state_value > -2000:
+                    return original_state_value
 
-            if depth >= 10:
-                return self.get_state_value
+            if depth >= 6:
+                return state_value
+
+            if state_value > 2000:
+                self.check_bonus = 100
 
 
             original_board = [row[:] for row in self.board.board]
@@ -243,6 +243,8 @@ class Brain:
 
         return total_eval * turn
 
+    def check_covering_bonus(self, board_state, turn):
+        pass
 
 
 if __name__ == '__main__':
