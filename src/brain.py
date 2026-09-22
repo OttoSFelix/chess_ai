@@ -2,6 +2,7 @@ from copy import deepcopy
 from board import Board
 import chess
 import random
+from time import time
 
 class Brain:
     def __init__(self, game_board: Board):
@@ -61,6 +62,7 @@ class Brain:
         self.actual_board = game_board
 
         self.check_bonus = 0
+        self.check_cover_bonus = 20
 
         self.last_moves_black = (None, None, None)
         self.last_moves_white = (None, None, None)
@@ -85,18 +87,18 @@ class Brain:
 
             state_value = self.get_state_value(self.board.board, turn)
             if depth >= 3:
-                if previous < 300 and original_state_value < 2000 and original_state_value > -2000:
+                if previous < 300 and original_state_value < 2500 and original_state_value > -2500:
                     return state_value
 
             if depth >= 5:
-                if original_state_value < 2000 and original_state_value > -2000:
-                    return original_state_value
+                if original_state_value < 2500 and original_state_value > -2500:
+                    return state_value
 
             if depth >= 6:
                 return state_value
 
             if state_value > 2000:
-                self.check_bonus = 100
+                self.check_bonus = 300
 
 
             original_board = [row[:] for row in self.board.board]
@@ -131,6 +133,7 @@ class Brain:
                 check_bonus = 0
                 if self.board.is_king_checked(-turn):
                     check_bonus += self.check_bonus
+                    # check_bonus += self.check_covering_bonus(self.board.board, turn)
 
                 horizon_eval = self.get_state_value(self.board.board, turn) - horizon_eval
 
@@ -158,8 +161,10 @@ class Brain:
                 return 0
             return max_eval
 
+
         alpha = float('-inf')
         beta = float('inf')
+
         best_move = None
         castling_state = (
                 self.board.white_can_castle_kingside,
@@ -167,13 +172,12 @@ class Brain:
                 self.board.black_can_castle_kingside,
                 self.board.black_can_castle_queenside,
             )
-        for move in self.board.legal_moves(original_turn):
-            if original_turn == 1 and self.last_moves_white[-2] == move and self.last_moves_white[-3] == self.last_moves_white[-1]:
-                continue
-            if original_turn == -1 and self.last_moves_black[-2] == move and self.last_moves_black[-3] == self.last_moves_black[-1]:
-                continue
 
-            horizon_eval = self.get_state_value(self.board.board, original_turn)
+        self.check_bonus = 0
+        if original_state_value > 2000:
+            self.check_bonus = 300
+
+        for move in self.board.legal_moves(original_turn):
 
             self.board.play_move(move)
 
@@ -190,10 +194,11 @@ class Brain:
             check_bonus = 0
             if self.board.is_king_checked(-original_turn):
                 check_bonus += self.check_bonus
+                check_bonus += self.check_covering_bonus(self.board.board, original_turn)
 
-            horizon_eval = self.get_state_value(self.board.board, original_turn) - horizon_eval
+            horizon_eval = self.get_state_value(self.board.board, original_turn)
 
-            next_eval = -traverse(-original_turn, 1, -beta, -alpha, horizon_eval) + check_bonus
+            next_eval = -traverse(-original_turn, 1, -beta, -alpha, original_state_value - horizon_eval) + check_bonus
 
             if next_eval > alpha:
                 alpha = next_eval
@@ -244,7 +249,30 @@ class Brain:
         return total_eval * turn
 
     def check_covering_bonus(self, board_state, turn):
-        pass
+        original_board = [row[:] for row in self.board.board]
+        self.board.board = board_state
+        total_bonus = 0
+
+        covered_positions = []
+        covering_funcs = [
+            self.board.knight_cover,
+            self.board.pawn_cover,
+            self.board.cross_cover,
+            self.board.straight_cover,
+            self.board.king_cover
+        ]
+
+        king_row, king_col = self.board.get_king_id(-turn)
+        for func in covering_funcs:
+            covered_positions += func((king_row, king_col), -turn)
+
+        for pos in covered_positions:
+            if self.board.is_position_covered(pos, -turn):
+                total_bonus += self.check_cover_bonus
+
+        self.board.board = [row[:] for row in original_board]
+        return total_bonus
+
 
 
 if __name__ == '__main__':
@@ -253,26 +281,19 @@ if __name__ == '__main__':
     brain = Brain(board)
     board.init_board()
 
-    # random.seed(40)
-    # for _ in range(30):
-    #     possible_moves = [move.uci() for move in list(cboard.legal_moves)]
-    #     move = random.choice(possible_moves)
-    #     cboard.push_uci(move)
-    #     board.play_move(move)
-
-    turn = board.push_fen("1r4k1/rpp1qppp/p1nbpn2/3p2Nb/3P4/P1NBPP1P/RPPB2P1/3Q1RK1 w - - 23 25")
-
-    legal_moves = board.legal_moves(1)
-    original_board = [row[:] for row in board.board]
-    evaluations = []
-    for move in legal_moves:
-        board.play_move(move)
-        eval = brain.get_state_value(board.board, 1)
-        evaluations.append((move, eval))
-        board.board = [row[:] for row in original_board]
     
-    evaluations.sort(key=lambda x: x[1])
+    board.push_fen("1rb2rk1/ppp2pp1/1bn5/8/2R5/2Pp4/PP3qPP/4R2K b - - 1 21")
 
-    print(evaluations)
+    print(brain.get_state_value(board.board, -1))
+    print(brain.check_covering_bonus(board.board, -1))
 
-    # print(brain.negamax_move(board, 1))
+    for row in board.board:
+        print(row)
+
+    start = time()
+    print(brain.negamax_move(board, -1))
+    end = time()
+
+    total = end - start
+    print(f'total time taken: {total:2f}')
+

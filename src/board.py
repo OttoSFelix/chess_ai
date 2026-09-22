@@ -639,31 +639,70 @@ class Board:
         king_id = self.get_king_id(turn=turn)
         row, col = king_id
 
-        knight_cover = False
+        if self.knight_cover((row, col), turn):
+            return True
+
+        if self.pawn_cover((row, col), turn):
+            return True
+
+        if self.cross_cover((row, col), turn):
+            return True
+
+        if self.straight_cover((row, col), turn):
+            return True
+        
+        if self.king_cover((row, col), turn):
+            return True
+    
+        return False
+
+    def knight_cover(self, tile, turn):
+        row, col = tile
+        if turn == 1:
+            char_knight = 'k'
+        else:
+            char_knight = 'K'
+
+        covering_pos = []
         knight_ids = [(row+2, col+1), (row+2, col-1), (row+1, col+2), (row+1, col-2), (row-2, col+1), (row-2, col-1), (row-1, col+2), (row-1, col-2)]
         for knight_row, knight_col in knight_ids:
             if knight_row < 0 or knight_row > 7 or knight_col < 0 or knight_col > 7:
                 continue
             if self.board[knight_row][knight_col] == char_knight:
-                knight_cover = True
-                break
+                covering_pos.append((knight_row, knight_col))
 
-        if knight_cover:
-            return True
+        return covering_pos
 
-        pawn_cover = False
+    def pawn_cover(self, tile, turn):
+        row, col = tile
+        if turn == 1:
+            char_pawn = 'p'
+        else:
+            char_pawn = 'P'
+
+        covering_pos = []
         pawn_ids = [(row - turn, col-1), (row - turn, col+1)]
         for pawn_row, pawn_col in pawn_ids:
             if pawn_row < 0 or pawn_row > 7 or pawn_col < 0 or pawn_col > 7:
                 continue
             if self.board[pawn_row][pawn_col] == char_pawn:
-                pawn_cover = True
-                break
+                covering_pos.append((pawn_row, pawn_col))
 
-        if pawn_cover:
-            return True
+        return covering_pos
 
-        cross_cover = False
+    def cross_cover(self, tile, turn):
+        row, col = tile
+        if turn == 1:
+            char_bishop = 'b'
+            char_queen = 'q'
+            char_own_king = 'Z'
+        else:
+            char_bishop = 'B'
+            char_queen = 'Q'
+            char_own_king = 'z'
+
+        covering_pos = []
+
         cross_row, cross_col = row, col
         while True:
             cross_row += 1
@@ -672,13 +711,10 @@ class Board:
                 break
             char = self.board[cross_row][cross_col]
             if char == char_queen or char == char_bishop:
-                cross_cover = True
+                covering_pos.append((cross_row, cross_col))
                 break
             if char != ' ' and char != char_own_king:
                 break
-
-        if cross_cover:
-            return True
 
         cross_row, cross_col = row, col
         while True:
@@ -688,13 +724,10 @@ class Board:
                 break
             char = self.board[cross_row][cross_col]
             if char == char_queen or char == char_bishop:
-                cross_cover = True
+                covering_pos.append((cross_row, cross_col))
                 break
             if char != ' ' and char != char_own_king:
                 break
-
-        if cross_cover:
-            return True
 
         cross_row, cross_col = row, col
         while True:
@@ -704,13 +737,10 @@ class Board:
                 break
             char = self.board[cross_row][cross_col]
             if char == char_queen or char == char_bishop:
-                cross_cover = True
+                covering_pos.append((cross_row, cross_col))
                 break
             if char != ' ' and char != char_own_king:
                 break
-
-        if cross_cover:
-            return True
 
         cross_row, cross_col = row, col
         while True:
@@ -720,15 +750,26 @@ class Board:
                 break
             char = self.board[cross_row][cross_col]
             if char == char_queen or char == char_bishop:
-                cross_cover = True
+                covering_pos.append((cross_row, cross_col))
                 break
             if char != ' ' and char != char_own_king:
                 break
 
-        if cross_cover:
-            return True
+        return covering_pos
 
-        straight_cover = False
+    def straight_cover(self, tile, turn):
+        row, col = tile
+        if turn == 1:
+            char_rook = 'r'
+            char_queen = 'q'
+            char_own_king = 'Z'
+        else:
+            char_rook = 'R'
+            char_queen = 'Q'
+            char_own_king = 'z'
+
+        covering_pos = []
+
         straight_row, straight_col = row, col
         while True:
             straight_row += 1
@@ -736,13 +777,10 @@ class Board:
                 break
             char = self.board[straight_row][straight_col]
             if char == char_queen or char == char_rook:
-                straight_cover = True
+                covering_pos.append((straight_row, straight_col))
                 break
             if char != ' ' and char != char_own_king:
                 break
-        
-        if straight_cover:
-            return True
 
         straight_row, straight_col = row, col
         while True:
@@ -751,14 +789,11 @@ class Board:
                 break
             char = self.board[straight_row][straight_col]
             if char == char_queen or char == char_rook:
-                straight_cover = True
+                covering_pos.append((straight_row, straight_col))
                 break
             if char != ' ' and char != char_own_king:
                 break
-        
-        if straight_cover:
-            return True
-        
+
         straight_row, straight_col = row, col
         while True:
             straight_col += 1
@@ -766,14 +801,11 @@ class Board:
                 break
             char = self.board[straight_row][straight_col]
             if char == char_queen or char == char_rook:
-                straight_cover = True
+                covering_pos.append((straight_row, straight_col))
                 break
             if char != ' ' and char != char_own_king:
                 break
 
-        if straight_cover:
-            return True
-        
         straight_row, straight_col = row, col
         while True:
             straight_col -= 1
@@ -781,27 +813,31 @@ class Board:
                 break
             char = self.board[straight_row][straight_col]
             if char == char_queen or char == char_rook:
-                straight_cover = True
+                covering_pos.append((straight_row, straight_col))
                 break
             if char != ' ' and char != char_own_king:
                 break
 
-        if straight_cover:
-            return True
-        
-        king_cover = False
+        return covering_pos
+
+    def king_cover(self, tile, turn):
+        row, col = tile
+        if turn == 1:
+            char_king = 'z'
+        else:
+            char_king = 'Z'
+
+        covering_pos = []
+
         king_ids = [(row-1, col-1), (row-1, col), (row-1, col+1), (row, col-1), (row, col+1), (row+1, col-1), (row+1, col), (row+1, col+1)]
         for king_row, king_col in king_ids:
             if king_row < 0 or king_row > 7 or king_col < 0 or king_col > 7:
                 continue
             if self.board[king_row][king_col] == char_king:
-                king_cover = True
+                covering_pos.append((king_row, king_col))
                 break
-
-        if king_cover:
-            return True
-    
-        return False
+        
+        return covering_pos
 
     def play_random_move(self, turn):
         all_moves = set(self.legal_moves(turn))
@@ -851,7 +887,6 @@ class Board:
         self.black_can_castle_queenside = False
         for pointer in range(len(fen)):
             char = fen[pointer]
-            print(char, end='')
             if char == '/':
                 row += 1
                 col = 0
@@ -891,17 +926,30 @@ class Board:
 
         return turn
 
+    def is_position_covered(self, tile, turn):
+
+        if self.knight_cover(tile, turn):
+            return True
+        
+        if self.pawn_cover(tile, turn):
+            return True
+
+        if self.cross_cover(tile, turn):
+            return True
+
+        if self.straight_cover(tile, turn):
+            return True
+
+        if self.king_cover(tile, turn):
+            return True
+
+        return False
 
 if __name__ == '__main__':
     cboard = chess.Board()
     board = Board()
-    board.board = [
-        [' ', ' ', ' ', ' ', ' ', ' ', 'B', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', 'r', 'K', ' ', ' ', ' '],
-        [' ', ' ', ' ', 'z', 'r', ' ', ' ', ' '],
-        [' ', ' ', 'r', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    ]
+    board.init_board()
+
+
+    for row in board.board:
+        print(row)

@@ -86,6 +86,25 @@ def test_king_check_after_40_moves():
 
     assert actual == expected
 
+def test_king_not_in_check():
+    """Tests if the king is in check when not supposed to be"""
+    random.seed(20)
+    cboard = chess.Board()
+    board = Board()
+    board.init_board()
+
+    for _ in range(20):
+        moves = get_chess_legal_moves(cboard)
+        move = random.choice(moves)
+        cboard.push_uci(move)
+        board.play_move(move)
+
+    expected = cboard.is_check()
+    assert expected == False
+    actual = board.is_king_checked(1)
+
+    assert actual == expected
+
 def test_king_check_after_50_moves():
     """Tests if the king is in check after 50 random moves"""
     random.seed(38)
