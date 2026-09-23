@@ -531,18 +531,18 @@ class Board:
         if character == character.lower():
             if not self.is_king_checked(-1):
                 if self.black_can_castle_kingside:
-                    if self.board[row][col+1] == ' ' and self.board[row][col+2] == ' ':
+                    if self.board[row][col+1] == ' ' and self.board[row][col+2] == ' ' and self.is_position_covered((row, col+1), -1) == False:
                         possible_moves_copy += [(row, col+2)]
                 if self.black_can_castle_queenside:
-                    if self.board[row][col-1] == ' ' and self.board[row][col-2] == ' ' and self.board[row][col-3] == ' ':
+                    if self.board[row][col-1] == ' ' and self.board[row][col-2] == ' ' and self.board[row][col-3] == ' ' and self.is_position_covered((row, col-1), -1) == False:
                         possible_moves_copy += [(row, col-2)]
         else:
             if not self.is_king_checked(1):
                 if self.white_can_castle_kingside:
-                    if self.board[row][col+1] == ' ' and self.board[row][col+2] == ' ':
+                    if self.board[row][col+1] == ' ' and self.board[row][col+2] == ' ' and self.is_position_covered((row, col+1), 1) == False:
                         possible_moves_copy += [(row, col+2)]
                 if self.white_can_castle_queenside:
-                    if self.board[row][col-1] == ' ' and self.board[row][col-2] == ' ' and self.board[row][col-3] == ' ':
+                    if self.board[row][col-1] == ' ' and self.board[row][col-2] == ' ' and self.board[row][col-3] == ' ' and self.is_position_covered((row, col-1), 1) == False:
                         possible_moves_copy += [(row, col-2)]
 
         possible_moves = set(possible_moves_copy)
