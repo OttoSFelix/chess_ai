@@ -9,10 +9,10 @@ class Brain:
         self.piece_values = {'p': 100, 'k': 320, 'b': 330, 'r': 500, 'q': 900, 'z': 20000}
         self.pawn_position = [
             [0,   0,   0,   0,   0,   0,   0,   0],
-            [50,  50,  50,  50,  50,  50,  50,  50],
-            [10,  10,  20,  30,  30,  20,  10,  10],
-            [5,   5,  10,  25,  25,  10,   5,   5],
-            [0,   0,   0,  20,  20,   0,   0,   0],
+            [55,  55,  55,  55,  55,  55,  55,  55],
+            [20,  20,  20,  35,  35,  20,  20,  20],
+            [5,   5,  10,  30,  30,  10,   5,   5],
+            [0,   0,   0,  25,  25,   0,   0,   0],
             [5,  -5, -10,   0,   0, -10,  -5,   5],
             [5,  10,  10, -20, -20,  10,  10,   5],
             [0,   0,   0,   0,   0,   0,   0,   0]
@@ -60,12 +60,27 @@ class Brain:
         self.board.init_board()
 
         self.actual_board = game_board
+        self.starting_state = False
+        self.endgame_state = False
+        if self.actual_board == [
+            ['r', 'k', 'b', 'q', 'z', 'b', 'k', 'r'],
+            ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+            ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+            ['R', 'K', 'B', 'Q', 'Z', 'B', 'K', 'R'],]:
+
+            self.starting_state = True
+
 
         self.check_penalty = 0
         self.check_cover_bonus = 20
 
         self.last_moves_black = (None, None, None)
         self.last_moves_white = (None, None, None)
+        self.depth_limit = 8
 
     def negamax_move(self, game_board: Board, original_turn):
 
@@ -93,20 +108,23 @@ class Brain:
             state_value = self.get_state_value(self.board.board, turn)
 
             if depth >= 4:
-                if previous_val < 300 and original_state_value < 2500 and original_state_value > -2500:
-                    return state_value - check_penalty
-
-
-            if depth >= 5:
-                if previous_val < 300 and original_state_value < 2500 and original_state_value > -2500:
-                    return state_value - check_penalty
+                if not self.endgame_state:
+                    if previous_val < 300 and original_state_value < 2500 and original_state_value > -2500:
+                        return state_value - check_penalty
 
             if depth >= 6:
-                if previous_val < 300:
-                    return state_value - check_penalty
-                move_pruning = True
+                if not self.endgame_state:
+                    if previous_val < 300:
+                        return state_value - check_penalty
+                    move_pruning = True
 
-            if depth >= 8:
+            if depth >= 7:
+                if not self.endgame_state:
+                    if previous_val < 300:
+                        return state_value - check_penalty
+                    move_pruning = True
+
+            if depth >= self.depth_limit:
                 return state_value - check_penalty
 
             if not previous_move:
@@ -123,7 +141,7 @@ class Brain:
                     self.board.black_can_castle_queenside,
                 )
 
-            possible_moves = self.board.legal_moves(turn)
+            possible_moves = sorted(self.board.legal_moves(turn), key=self.sort_moves_key, reverse=True)
             legal_move_count = 0
 
             max_eval = float('-inf')
@@ -170,13 +188,16 @@ class Brain:
                     return -50000 + (depth * 1000)
                 if move_pruning:
                     return traverse(turn, depth, alpha, beta, previous_val, None)
-                    print('Double same traverse!!')
                 return 0
             return max_eval
 
 
         alpha = float('-inf')
         beta = float('inf')
+
+        self.endgame_state = False
+        if self.get_overall_material(game_board.board) <= 41600:
+            self.endgame_state = True
 
         best_move = None
         castling_state = (
@@ -186,8 +207,14 @@ class Brain:
                 self.board.black_can_castle_queenside,
             )
 
-        for move in self.board.legal_moves(original_turn):
+        possible_moves = sorted(self.board.legal_moves(original_turn), key=self.sort_moves_key, reverse=True)
+        for move in possible_moves:
 
+            if self.starting_state:
+                pawn_row = '2' if original_turn == 1 else '7'
+                if move[1] != pawn_row:
+                    if random.random() > 0.5:
+                        continue
             self.board.play_move(move)
 
             if self.board.is_king_checked(original_turn):
@@ -254,6 +281,20 @@ class Brain:
 
         return total_eval * turn
 
+    def get_overall_material(self, board_state):
+        total_material = 0
+
+        for row in range(8):
+            for col in range(8):
+                piece = board_state[row][col]
+                if piece == ' ':
+                    continue
+
+                piece_value = self.piece_values[piece.lower()]
+                total_material += piece_value
+
+        return total_material
+
     def check_covering_bonus(self, board_state, turn):
         original_board = [row[:] for row in self.board.board]
         self.board.board = board_state
@@ -279,7 +320,10 @@ class Brain:
         self.board.board = [row[:] for row in original_board]
         return total_bonus
 
-
+    def sort_moves_key(self, move):
+        target_tile = self.board.tile_lookup[move[2:4]]
+        row, col = target_tile
+        return self.piece_values.get(self.board.board[row][col].lower(), 0)
 
 if __name__ == '__main__':
     cboard = chess.Board()
@@ -288,18 +332,19 @@ if __name__ == '__main__':
     board.init_board()
 
     
-    board.push_fen("r1b3rk/ppp2p1p/3p3K/8/8/3q4/8/8 b - - 3 47")
+    board.push_fen("8/7p/p2k2p1/1p2p3/4P1pP/1N1P4/P5P1/6K1 b - h3 0 40")
 
-    print(brain.get_state_value(board.board, -1))
-    print(brain.check_covering_bonus(board.board, -1))
+    # print(brain.get_state_value(board.board, -1))
+    # print(brain.check_covering_bonus(board.board, -1))
 
     for row in board.board:
         print(row)
 
     start = time()
-    print(brain.negamax_move(board, -1))
+    print(brain.negamax_move(board, 1))
     end = time()
 
     total = end - start
     print(f'total time taken: {total:2f}')
-
+    
+    print(brain.get_overall_material(board.board))

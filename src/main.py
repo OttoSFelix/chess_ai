@@ -32,6 +32,7 @@ def main():
     board = Board()
     board.init_board()
     turn = 1
+    turns = 0
 
     brain = Brain(board)
 
@@ -45,8 +46,12 @@ def main():
         elif opponent_move.startswith("RESET:"):
             board.init_board()
             turn = 1
+            turns = 0
+            brain.starting_state = True
             print("Board reset!", flush=True)
         elif opponent_move.startswith("PLAY:"):
+            if turns == 2:
+                brain.starting_state = False
             print('Playing AI move!!!', flush=True)
             choice = brain.negamax_move(board, turn)
 
@@ -55,6 +60,7 @@ def main():
 
             print(f"MOVE:{choice}", flush=True)
             turn = -turn
+            turns += 1
         elif opponent_move.startswith("MOVE:"):
             move = opponent_move.removeprefix("MOVE:")
             board.play_move(move)
