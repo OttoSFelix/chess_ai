@@ -93,7 +93,7 @@ class Board:
                 
 
         elif len(code) == 5:
-            new_piece = code[4]
+            new_piece = 'k' if code[4] == 'n' else code[4]
             if piece == piece.lower():
                 self.board[target[0]][target[1]] = new_piece.lower()
             else:
@@ -601,10 +601,10 @@ class Board:
         right = self.code_lookup[end]
         prefix = left + right
         if piece == 'p' and start[0] == 6 and end[0] == 7:
-            for p in ['q', 'r', 'b', 'k']:
+            for p in ['q', 'r', 'b', 'n']:
                 codes.append(prefix + p)
         elif piece == 'P' and start[0] == 1 and end[0] == 0:
-            for p in ['q', 'r', 'b', 'k']:
+            for p in ['q', 'r', 'b', 'n']:
                 codes.append(prefix + p)
         else:
             codes.append(prefix)

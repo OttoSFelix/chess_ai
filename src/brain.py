@@ -321,6 +321,9 @@ class Brain:
         return total_bonus
 
     def sort_moves_key(self, move):
+        if len(move) == 5:
+            promoted = 'k' if move[4] == 'n' else move[4]
+            return self.piece_values.get(promoted, 0)
         target_tile = self.board.tile_lookup[move[2:4]]
         row, col = target_tile
         return self.piece_values.get(self.board.board[row][col].lower(), 0)
@@ -331,8 +334,8 @@ if __name__ == '__main__':
     brain = Brain(board)
     board.init_board()
 
-    
-    board.push_fen("8/7p/p2k2p1/1p2p3/4P1pP/1N1P4/P5P1/6K1 b - h3 0 40")
+
+    board.push_fen("8/4P1q1/3k4/8/8/8/r7/7K w - - 18 97")
 
     # print(brain.get_state_value(board.board, -1))
     # print(brain.check_covering_bonus(board.board, -1))
