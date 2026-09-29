@@ -1,4 +1,3 @@
-from copy import deepcopy
 from board import Board
 import chess
 import random
@@ -75,12 +74,11 @@ class Brain:
             self.starting_state = True
 
 
-        self.check_penalty = 0
+        self.check_penalty = 5
         self.check_cover_bonus = 20
 
         self.last_moves_black = (None, None, None)
         self.last_moves_white = (None, None, None)
-        self.depth_limit = 8
 
     def negamax_move(self, game_board: Board, original_turn):
 
@@ -94,44 +92,16 @@ class Brain:
 
         original_state_value = self.get_state_value(self.board.board, original_turn)
 
-        def traverse(turn, depth, alpha, beta, previous_val, previous_move):
+        def traverse(turn, depth, alpha, beta):
 
             self.max_depth = max(self.max_depth, depth)
 
-            check_penalty = 0
-            if self.board.is_king_checked(turn):
-                check_penalty += self.check_penalty
-                check_penalty += self.check_covering_bonus(self.board.board, -turn)
-
-            move_pruning = False
-
-            state_value = self.get_state_value(self.board.board, turn)
-
             if depth >= 4:
-                if not self.endgame_state:
-                    if previous_val < 300 and original_state_value < 2500 and original_state_value > -2500:
-                        return state_value - check_penalty
+                if not self.endgame_state and original_state_value < 2500 and original_state_value > -2500:
+                    return self.horizon_search(alpha, beta, turn, depth)
 
             if depth >= 6:
-                if not self.endgame_state:
-                    if previous_val < 300:
-                        return state_value - check_penalty
-                    move_pruning = True
-
-            if depth >= 7:
-                if not self.endgame_state:
-                    if previous_val < 300:
-                        return state_value - check_penalty
-                    move_pruning = True
-
-            if depth >= self.depth_limit:
-                return state_value - check_penalty
-
-            if not previous_move:
-                move_pruning = False
-            else:
-                previous_capture = previous_move[2:4]
-
+                return self.horizon_search(alpha, beta, turn, depth)
 
             original_board = [row[:] for row in self.board.board]
             castling_state = (
@@ -146,9 +116,6 @@ class Brain:
 
             max_eval = float('-inf')
             for move in possible_moves:
-                if move_pruning:
-                    if move[2:4] != previous_capture:
-                        continue
 
                 self.board.play_move(move)
 
@@ -163,9 +130,7 @@ class Brain:
                     continue
                 legal_move_count += 1
 
-                horizon_eval = self.get_state_value(self.board.board, turn)
-
-                next_eval = -traverse(-turn, depth+1, -beta, -alpha, horizon_eval - state_value, move)
+                next_eval = -traverse(-turn, depth+1, -beta, -alpha)
                 self.board.board = [row[:] for row in original_board]
                 (
                     self.board.white_can_castle_kingside,
@@ -186,8 +151,6 @@ class Brain:
             if legal_move_count == 0:
                 if self.board.is_king_checked(turn):
                     return -50000 + (depth * 1000)
-                if move_pruning:
-                    return traverse(turn, depth, alpha, beta, previous_val, None)
                 return 0
             return max_eval
 
@@ -227,13 +190,12 @@ class Brain:
                     ) = castling_state
                     continue
 
-            horizon_eval = self.get_state_value(self.board.board, original_turn)
-
-            next_eval = -traverse(-original_turn, 1, -beta, -alpha, horizon_eval - original_state_value, None)
+            next_eval = -traverse(-original_turn, 1, -beta, -alpha)
 
             if next_eval > alpha:
                 alpha = next_eval
                 best_move = move
+
             self.board.board = [row[:] for row in game_board.board]
             (
                 self.board.white_can_castle_kingside,
@@ -249,6 +211,72 @@ class Brain:
         else:
             self.last_moves_black = (self.last_moves_black[1], self.last_moves_black[2], best_move)
         return best_move
+
+    def horizon_search(self, alpha, beta, turn, depth):
+        self.max_depth = max(self.max_depth, depth)
+
+        check_penalty = 0
+        if self.board.is_king_checked(turn):
+            check_penalty += self.check_penalty
+            check_penalty += self.check_covering_bonus(self.board.board, -turn)
+
+        initial = self.get_state_value(self.board.board, turn) - check_penalty
+        if initial >= beta:
+            return beta
+        if initial > alpha:
+            alpha = initial
+
+        max_eval = initial
+
+        capture_moves = []
+        for move in self.board.legal_moves(turn):
+            row, col = self.board.tile_lookup.get(move[2:4])
+            if self.board.board[row][col] != ' ':
+                capture_moves.append(move)
+        capture_moves.sort(key=self.sort_moves_key, reverse=True)
+
+        original_board = [row[:] for row in self.board.board]
+        castling_state = (
+            self.board.black_can_castle_kingside,
+            self.board.black_can_castle_queenside,
+            self.board.white_can_castle_kingside,
+            self.board.white_can_castle_queenside
+        )
+
+        for move in capture_moves:
+            self.board.play_move(move)
+
+            if self.board.is_king_checked(turn):
+                self.board.board = [row[:] for row in original_board]
+                (
+                self.board.black_can_castle_kingside,
+                self.board.black_can_castle_queenside,
+                self.board.white_can_castle_kingside,
+                self.board.white_can_castle_queenside
+                ) = castling_state
+                continue
+
+            next_eval = -self.horizon_search(-beta, -alpha, -turn, depth+1)
+
+            self.board.board = [row[:] for row in original_board]
+            (
+            self.board.black_can_castle_kingside,
+            self.board.black_can_castle_queenside,
+            self.board.white_can_castle_kingside,
+            self.board.white_can_castle_queenside
+            ) = castling_state
+
+
+            if next_eval > max_eval:
+                max_eval = next_eval
+            if max_eval > alpha:
+                alpha = max_eval
+            if alpha >= beta:
+                break
+
+        return max_eval
+
+
 
 
     def get_state_value(self, board_state, turn):
@@ -335,7 +363,7 @@ if __name__ == '__main__':
     board.init_board()
 
 
-    board.push_fen("8/4P1q1/3k4/8/8/8/r7/7K w - - 18 97")
+    board.push_fen("7k/K6p/8/8/8/8/6R1/8 w - - 1 99")
 
     # print(brain.get_state_value(board.board, -1))
     # print(brain.check_covering_bonus(board.board, -1))
@@ -349,5 +377,3 @@ if __name__ == '__main__':
 
     total = end - start
     print(f'total time taken: {total:2f}')
-    
-    print(brain.get_overall_material(board.board))
