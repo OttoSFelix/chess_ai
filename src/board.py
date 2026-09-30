@@ -42,6 +42,8 @@ class Board:
         self.black_can_castle_kingside = True
         self.black_can_castle_queenside = True
 
+        self.move_counter = 0
+
     def init_board(self):
         self.board = [
             ['r', 'k', 'b', 'q', 'z', 'b', 'k', 'r'],
@@ -97,7 +99,9 @@ class Board:
             if piece == piece.lower():
                 self.board[target[0]][target[1]] = new_piece.lower()
             else:
-                self.board[target[0]][target[1]] = new_piece.upper()         
+                self.board[target[0]][target[1]] = new_piece.upper()
+
+        self.move_counter += 1      
 
     def pawn_moves(self, tile):
         row = tile[0]
@@ -923,8 +927,77 @@ class Board:
                 self.black_can_castle_queenside = True
             else:
                 break
+        
+        num = ''
+        pointer = -1
+        while fen[pointer] != ' ':
+            num += fen[pointer]
+            pointer -= 1
+        
+        turn_count = ''
+        for s in reversed(num):
+            turn_count += s
+
+        self.move_counter = int(turn_count) * 2
+        if turn == -1:
+            self.move_counter += 1
 
         return turn
+
+    def get_fen(self):
+        string = ''
+        
+        for row in range(8):
+            space_counter = 0
+            for col in range(8):
+                char = self.board[row][col]
+                if char == 'K':
+                    char = 'N'
+                elif char == 'k':
+                    char = 'n'
+                elif char == 'Z':
+                    char = 'K'
+                elif char == 'z':
+                    char = 'k'
+
+                if char == ' ':
+                    space_counter += 1
+                    if col == 7:
+                        string += str(space_counter)
+                    continue
+                else:
+                    if space_counter != 0:
+                        string += str(space_counter)
+                    string += char
+                    space_counter = 0
+            if row != 7:
+                string += '/'
+            
+        if self.move_counter % 2 == 0:
+            string += ' w '
+        else:
+            string += ' b '
+
+        if not self.white_can_castle_kingside and \
+            not self.white_can_castle_queenside and \
+            not self.black_can_castle_kingside and \
+            not self.black_can_castle_queenside:
+            string += '-'
+        else:
+            if self.white_can_castle_kingside:
+                string += 'K'
+            if self.white_can_castle_queenside:
+                string += 'Q'
+            if self.black_can_castle_kingside:
+                string += 'k'
+            if self.black_can_castle_queenside:
+                string += 'q'
+
+        string += ' - 0 '
+
+        string += str(self.move_counter // 2)
+            
+        return string
 
     def is_position_covered(self, tile, turn):
 
