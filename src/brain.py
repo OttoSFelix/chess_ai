@@ -8,10 +8,10 @@ class Brain:
         self.piece_values = {'p': 100, 'k': 320, 'b': 330, 'r': 500, 'q': 900, 'z': 20000}
         self.pawn_position = [
             [0,   0,   0,   0,   0,   0,   0,   0],
-            [55,  55,  55,  55,  55,  55,  55,  55],
-            [20,  20,  20,  35,  35,  20,  20,  20],
-            [5,   5,  10,  30,  30,  10,   5,   5],
-            [0,   0,   0,  25,  25,   0,   0,   0],
+            [50,  50,  50,  50,  50,  50,  50,  50],
+            [10,  10,  20,  30,  30,  20,  10,  10],
+            [5,   5,  10,  25,  25,  10,   5,   5],
+            [0,   0,   0,  20,  20,   0,   0,   0],
             [5,  -5, -10,   0,   0, -10,  -5,   5],
             [5,  10,  10, -20, -20,  10,  10,   5],
             [0,   0,   0,   0,   0,   0,   0,   0]
@@ -96,8 +96,9 @@ class Brain:
 
             self.max_depth = max(self.max_depth, depth)
 
+            royal_distance = self.board.royal_distance(turn)
             if depth >= 4:
-                if not self.endgame_state and original_state_value < 2500 and original_state_value > -2500:
+                if not self.endgame_state and original_state_value < 2500 and original_state_value > -2500 and royal_distance > 2:
                     return self.horizon_search(alpha, beta, turn, depth)
 
             if depth >= 6:
@@ -363,7 +364,7 @@ if __name__ == '__main__':
     board.init_board()
 
 
-    board.push_fen("7k/K6p/8/8/8/8/6R1/8 w - - 1 99")
+    board.push_fen("r2q1rk1/pbp2p2/1bp4Q/3pPp2/8/3P1N2/PPP3PP/RN5K b - - 0 17")
 
     # print(brain.get_state_value(board.board, -1))
     # print(brain.check_covering_bonus(board.board, -1))
@@ -372,7 +373,8 @@ if __name__ == '__main__':
         print(row)
 
     start = time()
-    print(brain.negamax_move(board, 1))
+    # print(brain.negamax_move(board, -1))
+    print(board.royal_distance(-1))
     end = time()
 
     total = end - start

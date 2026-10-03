@@ -1018,6 +1018,26 @@ class Board:
 
         return False
 
+    def get_queen_ids(self, turn):
+        ids = []
+        queen = 'Q' if turn == 1 else 'q'
+        for row in range(8):
+            for col in range(8):
+                if self.board[row][col] == queen:
+                    ids.append((row, col))
+        return ids
+
+    def royal_distance(self, turn):
+        king_row, king_col = self.get_king_id(turn)
+        queen_positions = self.get_queen_ids(-turn)
+
+        min_distance = float('inf')
+        for row, col in queen_positions:
+            distance = abs(king_row - row) + abs(king_col - col)
+            min_distance = min(min_distance, distance)
+
+        return min_distance
+
 if __name__ == '__main__':
     cboard = chess.Board()
     board = Board()
