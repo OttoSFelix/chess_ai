@@ -16,6 +16,16 @@ class Brain:
             [5,  10,  10, -20, -20,  10,  10,   5],
             [0,   0,   0,   0,   0,   0,   0,   0]
         ]
+        self.endgame_pawn_position = [
+            [0,   0,   0,   0,   0,   0,   0,   0],
+            [50,  50,  50,  50,  50,  50,  50,  50],
+            [40,  40,  40,  40,  40,  40,  40,  40],
+            [30,  30,  30,  30,  30,  30,   30,  30],
+            [20,  20,  20,  20,  20,  20,   20,  20],
+            [10,  10,  10,  10,  10,  10,   10,  10],
+            [0,   0,   0,   0,   0,   0,   0,   0],
+            [0,   0,   0,   0,   0,   0,   0,   0]
+        ]
         self.knight_position = [
             [-50, -40, -30, -30, -30, -30, -40, -50],
             [-40, -20,   0,   0,   0,   0, -20, -40],
@@ -162,6 +172,7 @@ class Brain:
         self.endgame_state = False
         if self.get_overall_material(game_board.board) <= 41600:
             self.endgame_state = True
+            self.pawn_position = [row[:] for row in self.endgame_pawn_position]
 
         best_move = None
         castling_state = (
