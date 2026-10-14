@@ -87,8 +87,7 @@ class Brain:
         self.check_penalty = 5
         self.check_cover_bonus = 20
 
-        self.last_moves_black = (None, None, None)
-        self.last_moves_white = (None, None, None)
+        self.last_moves = {1: (None, None, None), -1: (None, None, None)}
 
     def negamax_move(self, game_board: Board, original_turn):
 
@@ -99,6 +98,14 @@ class Brain:
         self.board.board = [row[:] for row in game_board.board]
 
         self.max_depth = 0
+
+        self.endgame_state = False
+        if self.get_overall_material(game_board.board) <= 41600:
+            self.endgame_state = True
+            self.pawn_position = [row[:] for row in self.endgame_pawn_position]
+            self.king_position = [[0] * 8] * 8
+            self.position_lookup['p'] = self.pawn_position                                                                                                                        
+            self.position_lookup['z'] = self.king_position  
 
         original_state_value = self.get_state_value(self.board.board, original_turn)
 
@@ -122,6 +129,8 @@ class Brain:
                     self.board.black_can_castle_queenside,
                 )
 
+            depth_increment = 0 if self.board.is_king_checked(turn) else 1
+
             possible_moves = sorted(self.board.legal_moves(turn), key=self.sort_moves_key, reverse=True)
             legal_move_count = 0
 
@@ -141,7 +150,7 @@ class Brain:
                     continue
                 legal_move_count += 1
 
-                next_eval = -traverse(-turn, depth+1, -beta, -alpha)
+                next_eval = -traverse(-turn, depth+depth_increment, -beta, -alpha)
                 self.board.board = [row[:] for row in original_board]
                 (
                     self.board.white_can_castle_kingside,
@@ -169,11 +178,6 @@ class Brain:
         alpha = float('-inf')
         beta = float('inf')
 
-        self.endgame_state = False
-        if self.get_overall_material(game_board.board) <= 41600:
-            self.endgame_state = True
-            self.pawn_position = [row[:] for row in self.endgame_pawn_position]
-
         best_move = None
         castling_state = (
                 self.board.white_can_castle_kingside,
@@ -190,6 +194,9 @@ class Brain:
                 if move[1] != pawn_row:
                     if random.random() > 0.5:
                         continue
+            elif move == self.last_moves[original_turn][1] and self.last_moves[original_turn][0] == self.last_moves[original_turn][2]:
+                continue
+
             self.board.play_move(move)
 
             if self.board.is_king_checked(original_turn):
@@ -218,10 +225,7 @@ class Brain:
         print(f'maximum depth reached = {self.max_depth}')
 
         print(f'alpha: {alpha}')
-        if original_turn == 1:
-            self.last_moves_white = (self.last_moves_white[1], self.last_moves_white[2], best_move)
-        else:
-            self.last_moves_black = (self.last_moves_black[1], self.last_moves_black[2], best_move)
+        self.last_moves[original_turn] = (self.last_moves[original_turn][1], self.last_moves[original_turn][2], best_move)
         return best_move
 
     def horizon_search(self, alpha, beta, turn, depth):
@@ -232,6 +236,16 @@ class Brain:
             check_penalty += self.check_penalty
             check_penalty += self.check_covering_bonus(self.board.board, -turn)
 
+            capture_moves = self.board.legal_moves(turn)
+
+        else:
+            capture_moves = []
+            for move in self.board.legal_moves(turn):
+                row, col = self.board.tile_lookup.get(move[2:4])
+                if self.board.board[row][col] != ' ':
+                    capture_moves.append(move)
+            capture_moves.sort(key=self.sort_moves_key, reverse=True)
+
         initial = self.get_state_value(self.board.board, turn) - check_penalty
         if initial >= beta:
             return beta
@@ -239,13 +253,6 @@ class Brain:
             alpha = initial
 
         max_eval = initial
-
-        capture_moves = []
-        for move in self.board.legal_moves(turn):
-            row, col = self.board.tile_lookup.get(move[2:4])
-            if self.board.board[row][col] != ' ':
-                capture_moves.append(move)
-        capture_moves.sort(key=self.sort_moves_key, reverse=True)
 
         original_board = [row[:] for row in self.board.board]
         castling_state = (
@@ -375,7 +382,7 @@ if __name__ == '__main__':
     board.init_board()
 
 
-    board.push_fen("r2q1rk1/pbp2p2/1bp4Q/3pPp2/8/3P1N2/PPP3PP/RN5K b - - 0 17")
+    board.push_fen("8/8/8/8/1p3k2/1Pb5/6PK/1B6 b - - 0 0")
 
     # print(brain.get_state_value(board.board, -1))
     # print(brain.check_covering_bonus(board.board, -1))
@@ -384,8 +391,8 @@ if __name__ == '__main__':
         print(row)
 
     start = time()
-    # print(brain.negamax_move(board, -1))
-    print(board.royal_distance(-1))
+    print(brain.negamax_move(board, -1))
+    # print(brain.get_state_value(board.board, -1))
     end = time()
 
     total = end - start

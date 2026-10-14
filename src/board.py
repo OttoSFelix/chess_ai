@@ -61,6 +61,8 @@ class Board:
         self.black_can_castle_kingside = True
         self.black_can_castle_queenside = True
 
+        self.move_counter = 0
+
     def play_move(self, code):
         origin = self.tile_lookup[code[0:2]]
         target = self.tile_lookup[code[2:4]]
