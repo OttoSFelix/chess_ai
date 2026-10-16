@@ -68,6 +68,7 @@ class Board:
         target = self.tile_lookup[code[2:4]]
         
         piece = self.board[origin[0]][origin[1]]
+        target_piece = self.board[target[0]][target[1]]
         self.board[origin[0]][origin[1]] = ' '
         self.board[target[0]][target[1]] = piece
 
@@ -94,7 +95,6 @@ class Board:
                 self.black_can_castle_kingside = False
             elif origin == (0, 0):
                 self.black_can_castle_queenside = False
-                
 
         elif len(code) == 5:
             new_piece = 'k' if code[4] == 'n' else code[4]
@@ -102,6 +102,10 @@ class Board:
                 self.board[target[0]][target[1]] = new_piece.lower()
             else:
                 self.board[target[0]][target[1]] = new_piece.upper()
+
+        elif piece.lower() == 'p':
+            if origin[1] - target[1] != 0 and target_piece == ' ':
+                self.board[target[0] + (origin[0] - target[0])][target[1]] = ' '
 
         self.move_counter += 1      
 

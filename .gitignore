@@ -3,5 +3,6 @@ __pycache__/
 testi.py
 todo.txt
 saved_fens.txt
+games.txt
 example.png
 .DS_store
