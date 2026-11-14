@@ -51,6 +51,11 @@ function App() {
 	const [pieceset, setPieceset] = useState<string>(getData("piece_set"));
 	const [colorset, setColorset] = useState<string>(getData("color_set"));
 	const [arrow, setArrow] = useState<string>(getData("arrow"));
+	const [isFlipped, setIsFlipped] = useState<boolean>(false);
+
+	const handleFlipBoard = () => {
+		setIsFlipped((prev) => !prev);
+	};
 
 	const handleGameSelection = (game: string) => {
 		setMoves([]);
@@ -58,6 +63,7 @@ function App() {
 		setPositions([new Position()]);
 		setBoardIndex(0);
 		setSelectedGame(game);
+		setIsFlipped(false);
 		if (hasBeenSubmitted) {
 			killProcess();
 		}
@@ -234,6 +240,8 @@ function App() {
 										setGameOver={setGameOver}
 										gameOver={gameOver}
 										onResetBoard={handleResetBoard}
+										flipped={isFlipped}
+										onFlipBoard={handleFlipBoard}
 									/>
 								</>
 							) : selectedGame === "connectFour" ? (
@@ -277,6 +285,7 @@ function App() {
 								createNotification={createNotification}
 								setHasBeenSubmitted={setHasBeenSubmitted}
 								handleResetBoard={handleResetBoard}
+								handleFlipBoard={handleFlipBoard}
 							/>
 							<Settings
 								pieceset={pieceset}

@@ -25,6 +25,7 @@ export function MyChessboard(props: {
 	active: boolean;
 	notification?(header, body, bg?): void;
 	arrow: string;
+	flipped?: boolean;
 }) {
 	function handleMovePlayed(move: string) {
 		if (props.active) {
@@ -101,6 +102,7 @@ export function MyChessboard(props: {
 				squareSize={60}
 				colorset={getData("color_set")}
 				pieceset={getData("piece_set")}
+				flipped={props.flipped ?? false}
 			/>
 		</div>
 	);

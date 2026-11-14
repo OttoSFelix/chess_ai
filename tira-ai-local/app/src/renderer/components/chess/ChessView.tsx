@@ -40,7 +40,12 @@ export function ChessView(props: {
 	gameOver?: boolean;
 	setGameOver?(arg0: boolean): void;
 	onResetBoard?(): void;
+	flipped?: boolean;
+	onFlipBoard?(): void;
 }) {
+	const [internalFlipped, setInternalFlipped] = useState<boolean>(false);
+	const isFlipped =
+		props.flipped !== undefined ? props.flipped : internalFlipped;
 	const [maxTimeMinutes, setMaxTimeMinutes] = useState<number>(10);
 	const [whiteTime, setWhiteTime] = useState<number>(10 * 60);
 	const [blackTime, setBlackTime] = useState<number>(10 * 60);
@@ -265,6 +270,7 @@ export function ChessView(props: {
 				onMaxTimeMinutesChange={handleMaxTimeMinutesChange}
 				isConfigurable={isConfigurable}
 				onReset={handleReset}
+				flipped={isFlipped}
 			>
 				<MyChessboard
 					pos={props.positions[props.boardIndex]}
@@ -275,6 +281,7 @@ export function ChessView(props: {
 					}
 					notification={props.notification}
 					arrow={makeArrowString()}
+					flipped={isFlipped}
 				/>
 			</ChessClock>
 			<div data-testid="board-index">Turn {props.boardIndex}</div>

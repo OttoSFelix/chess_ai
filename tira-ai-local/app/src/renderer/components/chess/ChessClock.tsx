@@ -9,6 +9,7 @@ export interface ChessClockProps {
 	onMaxTimeMinutesChange: (minutes: number) => void;
 	isConfigurable: boolean;
 	onReset?: () => void;
+	flipped?: boolean;
 	children?: React.ReactNode;
 }
 
@@ -37,6 +38,7 @@ export const ChessClock: React.FC<ChessClockProps> = ({
 	onMaxTimeMinutesChange,
 	isConfigurable,
 	onReset,
+	flipped = false,
 	children,
 }) => {
 	const isBlackActive = activeSide === "b";
@@ -52,51 +54,53 @@ export const ChessClock: React.FC<ChessClockProps> = ({
 		}
 	};
 
+	const blackClockElement = (
+		<div
+			className={`chess-clock-bar black-clock ${isBlackActive ? "active" : ""} ${isBlackLowTime ? "low-time" : ""}`}
+			data-testid="black-clock"
+		>
+			<div className="chess-clock-player">
+				<span className="chess-clock-icon" aria-hidden="true">
+					♚
+				</span>
+				<span>Black</span>
+				{isBlackActive && (
+					<span className="chess-clock-badge">Turn</span>
+				)}
+			</div>
+			<div className="chess-clock-time" data-testid="black-clock-time">
+				{formatTime(blackTime)}
+			</div>
+		</div>
+	);
+
+	const whiteClockElement = (
+		<div
+			className={`chess-clock-bar white-clock ${isWhiteActive ? "active" : ""} ${isWhiteLowTime ? "low-time" : ""}`}
+			data-testid="white-clock"
+		>
+			<div className="chess-clock-player">
+				<span className="chess-clock-icon" aria-hidden="true">
+					♔
+				</span>
+				<span>White</span>
+				{isWhiteActive && (
+					<span className="chess-clock-badge">Turn</span>
+				)}
+			</div>
+			<div className="chess-clock-time" data-testid="white-clock-time">
+				{formatTime(whiteTime)}
+			</div>
+		</div>
+	);
+
 	return (
 		<div className="chess-clock-wrapper" data-testid="chess-clock-wrapper">
-			<div
-				className={`chess-clock-bar black-clock ${isBlackActive ? "active" : ""} ${isBlackLowTime ? "low-time" : ""}`}
-				data-testid="black-clock"
-			>
-				<div className="chess-clock-player">
-					<span className="chess-clock-icon" aria-hidden="true">
-						♚
-					</span>
-					<span>Black</span>
-					{isBlackActive && (
-						<span className="chess-clock-badge">Turn</span>
-					)}
-				</div>
-				<div
-					className="chess-clock-time"
-					data-testid="black-clock-time"
-				>
-					{formatTime(blackTime)}
-				</div>
-			</div>
+			{flipped ? whiteClockElement : blackClockElement}
 
 			{children}
 
-			<div
-				className={`chess-clock-bar white-clock ${isWhiteActive ? "active" : ""} ${isWhiteLowTime ? "low-time" : ""}`}
-				data-testid="white-clock"
-			>
-				<div className="chess-clock-player">
-					<span className="chess-clock-icon" aria-hidden="true">
-						♔
-					</span>
-					<span>White</span>
-					{isWhiteActive && (
-						<span className="chess-clock-badge">Turn</span>
-					)}
-				</div>
-				<div
-					className="chess-clock-time"
-					data-testid="white-clock-time"
-				>
-					{formatTime(whiteTime)}
-				</div>
-			</div>
+			{flipped ? blackClockElement : whiteClockElement}
 
 			<div className="chess-clock-controls">
 				<div className="chess-clock-config">

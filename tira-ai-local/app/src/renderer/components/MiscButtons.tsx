@@ -21,6 +21,7 @@ export function MiscButtons(props: {
 	createNotification(header: string, body: string, bg: string): void;
 	setHasBeenSubmitted(arg0: boolean): void;
 	handleResetBoard?(): void;
+	handleFlipBoard?(): void;
 }) {
 	function copyFenToClipboard() {
 		const fen = props.createFen(props.boardIndex);
@@ -61,6 +62,16 @@ export function MiscButtons(props: {
 					>
 						Copy current PGN
 					</button>
+					{props.handleFlipBoard && (
+						<button
+							className="classic-button"
+							onClick={props.handleFlipBoard}
+							data-testid="flip-board-button"
+							title="Flip the board the other way around"
+						>
+							Flip Board
+						</button>
+					)}
 					{props.handleResetBoard && (
 						<button
 							className="classic-button"
