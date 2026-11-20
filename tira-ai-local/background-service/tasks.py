@@ -4,7 +4,7 @@ from invoke import task
 @task
 def build(ctx):
     ctx.run(
-        "pex --python-shebang /bin/python3 --only-binary markupsafe --complete-platform ./platforms/debian.json --complete-platform ./platforms/cubbli.json --complete-platform ./platforms/cubbli2.json -o ./dist/background-service.pex  -c cli ."
+        "pex --python-shebang /bin/python3 --only-binary markupsafe --complete-platform ./platforms/debian.json --complete-platform ./platforms/cubbli.json --complete-platform ./platforms/cubbli2.json --complete-platform ./platforms/arch.json -o ./dist/background-service.pex  -c cli ."
     )
 
 
